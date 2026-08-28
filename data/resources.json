@@ -17,18 +17,36 @@
       "model_count": 3,
       "model_group_count": null,
       "latest_duration_ms": null,
-      "board_votes": { "rating": null },
+      "board_votes": {
+        "rating": null
+      },
       "current_status": "unknown",
       "consumer_category": "welfare",
       "recharge_ratio": "—",
-      "benefit_flags": ["register", "checkin"],
-      "site_tags": ["GitHub 注册", "每日签到", "赠送额度高"],
+      "benefit_flags": [
+        "register",
+        "checkin"
+      ],
+      "site_tags": [
+        "GitHub 注册",
+        "每日签到",
+        "赠送额度高"
+      ],
       "last_tested_at": null,
       "group_ratios": {},
       "models": [
-        { "model_id": "gpt-5.6-sol", "display_name": "gpt-5.6-sol" },
-        { "model_id": "claude-opus-4-8", "display_name": "claude-opus-4.8" },
-        { "model_id": "claude-opus-5", "display_name": "claude-opus-5" }
+        {
+          "model_id": "gpt-5.6-sol",
+          "display_name": "gpt-5.6-sol"
+        },
+        {
+          "model_id": "claude-opus-4-8",
+          "display_name": "claude-opus-4.8"
+        },
+        {
+          "model_id": "claude-opus-5",
+          "display_name": "claude-opus-5"
+        }
       ]
     },
     {
@@ -46,17 +64,31 @@
       "model_count": 2,
       "model_group_count": null,
       "latest_duration_ms": null,
-      "board_votes": { "rating": null },
+      "board_votes": {
+        "rating": null
+      },
       "current_status": "unknown",
       "consumer_category": "welfare",
       "recharge_ratio": "—",
-      "benefit_flags": ["register", "checkin"],
-      "site_tags": ["GitHub 注册", "每日签到"],
+      "benefit_flags": [
+        "register",
+        "checkin"
+      ],
+      "site_tags": [
+        "GitHub 注册",
+        "每日签到"
+      ],
       "last_tested_at": null,
       "group_ratios": {},
       "models": [
-        { "model_id": "claude-opus-4-8", "display_name": "claude-opus-4.8" },
-        { "model_id": "claude-opus-5", "display_name": "claude-opus-5" }
+        {
+          "model_id": "claude-opus-4-8",
+          "display_name": "claude-opus-4.8"
+        },
+        {
+          "model_id": "claude-opus-5",
+          "display_name": "claude-opus-5"
+        }
       ]
     },
     {
@@ -74,45 +106,75 @@
       "model_count": 2,
       "model_group_count": null,
       "latest_duration_ms": null,
-      "board_votes": { "rating": null },
+      "board_votes": {
+        "rating": null
+      },
       "current_status": "unknown",
       "consumer_category": "welfare",
       "recharge_ratio": "—",
-      "benefit_flags": ["register", "checkin"],
-      "site_tags": ["GitHub 注册", "每日签到", "需代理", "新站"],
+      "benefit_flags": [
+        "register",
+        "checkin"
+      ],
+      "site_tags": [
+        "GitHub 注册",
+        "每日签到",
+        "需代理",
+        "新站"
+      ],
       "last_tested_at": null,
       "group_ratios": {},
       "models": [
-        { "model_id": "claude-opus-4-8", "display_name": "claude-opus-4.8" },
-        { "model_id": "claude-opus-5", "display_name": "claude-opus-5" }
+        {
+          "model_id": "claude-opus-4-8",
+          "display_name": "claude-opus-4.8"
+        },
+        {
+          "model_id": "claude-opus-5",
+          "display_name": "claude-opus-5"
+        }
       ]
     },
     {
       "resource_id": "justwoker",
       "resource_name": "JustWoker",
-      "description": "GitHub 账号需满一年，注册赠送 90 刀，支持签到。可用 Claude Opus 4.8 与 Opus 5。",
+      "description": "GitHub 账号需满一年，注册赠送 90 刀，每日可签到 20 刀。可用 Claude Opus 4.8 与 Opus 5。",
       "site_url": "https://api.justwoker.icu/sign-up?aff=TAQH",
       "rank_position": 4,
       "displayed_multiplier": null,
       "register_bonus": 90,
-      "checkin_bonus": null,
+      "checkin_bonus": 20,
       "bonus_currency": "USD",
       "github_age_required": "1年以上",
       "direct_connect": true,
       "model_count": 2,
       "model_group_count": null,
       "latest_duration_ms": null,
-      "board_votes": { "rating": null },
+      "board_votes": {
+        "rating": null
+      },
       "current_status": "unknown",
       "consumer_category": "welfare",
       "recharge_ratio": "—",
-      "benefit_flags": ["register", "checkin"],
-      "site_tags": ["GitHub 注册", "每日签到"],
+      "benefit_flags": [
+        "register",
+        "checkin"
+      ],
+      "site_tags": [
+        "GitHub 注册",
+        "每日签到"
+      ],
       "last_tested_at": null,
       "group_ratios": {},
       "models": [
-        { "model_id": "claude-opus-4-8", "display_name": "claude-opus-4.8" },
-        { "model_id": "claude-opus-5", "display_name": "claude-opus-5" }
+        {
+          "model_id": "claude-opus-4-8",
+          "display_name": "claude-opus-4.8"
+        },
+        {
+          "model_id": "claude-opus-5",
+          "display_name": "claude-opus-5"
+        }
       ]
     },
     {
@@ -130,15 +192,28 @@
       "model_count": 1,
       "model_group_count": null,
       "latest_duration_ms": null,
-      "board_votes": { "rating": null },
+      "board_votes": {
+        "rating": null
+      },
       "current_status": "unknown",
       "consumer_category": "welfare",
       "recharge_ratio": "—",
-      "benefit_flags": ["register", "checkin"],
-      "site_tags": ["GitHub 注册", "每日签到"],
+      "benefit_flags": [
+        "register",
+        "checkin"
+      ],
+      "site_tags": [
+        "GitHub 注册",
+        "每日签到"
+      ],
       "last_tested_at": null,
       "group_ratios": {},
-      "models": [{ "model_id": "claude-opus-5", "display_name": "claude-opus-5" }]
+      "models": [
+        {
+          "model_id": "claude-opus-5",
+          "display_name": "claude-opus-5"
+        }
+      ]
     },
     {
       "resource_id": "true-sota",
@@ -155,18 +230,65 @@
       "model_count": 1,
       "model_group_count": 1,
       "latest_duration_ms": null,
-      "board_votes": { "rating": null },
+      "board_votes": {
+        "rating": null
+      },
       "current_status": "unknown",
       "consumer_category": "paid",
       "recharge_ratio": "—",
-      "benefit_flags": ["register"],
-      "site_tags": ["低倍率", "Claude kiro"],
+      "benefit_flags": [
+        "register"
+      ],
+      "site_tags": [
+        "低倍率",
+        "Claude kiro"
+      ],
       "last_tested_at": null,
-      "group_ratios": { "Claude-kiro": 0.35 },
-      "models": [{ "model_id": "claude-kiro", "display_name": "claude (kiro)" }]
+      "group_ratios": {
+        "Claude-kiro": 0.35
+      },
+      "models": [
+        {
+          "model_id": "claude-kiro",
+          "display_name": "claude (kiro)"
+        }
+      ]
+    },
+    {
+      "resource_id": "yjs",
+      "resource_name": "YJS API",
+      "description": "长期免费供应 DeepSeek-V4-Flash；其余模型依各家官方免费资源活动弹性开放、不定时提供。注册无赠送额度，无签到。",
+      "site_url": "https://api.yjs.im/sign-up?aff=Qpsx",
+      "rank_position": 7,
+      "displayed_multiplier": null,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "USD",
+      "github_age_required": null,
+      "direct_connect": true,
+      "model_count": 1,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "free",
+      "recharge_ratio": "—",
+      "benefit_flags": [],
+      "site_tags": [
+        "长期免费",
+        "DeepSeek",
+        "不定时开放"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {},
+      "models": [
+        {
+          "model_id": "deepseek-v4-flash",
+          "display_name": "DeepSeek-V4-Flash"
+        }
+      ]
     }
-
-
   ]
 }
-

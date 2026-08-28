@@ -59,7 +59,11 @@
       latency: typeof raw.latest_duration_ms === "number" ? raw.latest_duration_ms : null,
       rating: raw.board_votes && typeof raw.board_votes.rating === "number" ? raw.board_votes.rating : null,
       status: raw.current_status === "success" ? "success" : raw.current_status === "failed" ? "failed" : "unknown",
-      category: raw.consumer_category === "welfare" || raw.category === "welfare" ? "welfare" : "paid",
+      category: ["welfare", "paid", "free"].includes(raw.consumer_category)
+        ? raw.consumer_category
+        : raw.category === "welfare"
+          ? "welfare"
+          : "paid",
       ratio: raw.recharge_ratio || "—",
       registerBonus: typeof raw.register_bonus === "number" ? raw.register_bonus : null,
       checkinBonus: typeof raw.checkin_bonus === "number" ? raw.checkin_bonus : null,
@@ -105,7 +109,7 @@
     const list = state.items.filter((item) => {
       if (!matchesQuery(item, f.q)) return false;
       if (f.category !== "all" && item.category !== f.category) return false;
-      if (f.checkin && item.checkinBonus === null) return false;
+      if (f.checkin && !item.benefits.includes("checkin")) return false;
       if (f.direct && !item.directConnect) return false;
       return true;
     });
@@ -118,7 +122,7 @@
     const total = state.items.length;
     const bonuses = state.items.map((i) => i.registerBonus).filter((v) => typeof v === "number");
     const totalBonus = bonuses.reduce((s, v) => s + v, 0);
-    const withCheckin = state.items.filter((i) => i.checkinBonus !== null).length;
+    const withCheckin = state.items.filter((i) => i.benefits.includes("checkin")).length;
 
     const set = (key, value) => {
       const el = $(`[data-stat="${key}"]`);
