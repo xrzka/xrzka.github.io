@@ -11,7 +11,7 @@
   const state = {
     items: [],
     generatedAt: null,
-    filters: { q: "", sort: "rank", status: "all", category: "all", benefit: false },
+    filters: { q: "", sort: "rank", category: "all", checkin: false, direct: false },
   };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -21,9 +21,6 @@
 
   const fmtMultiplier = (v) =>
     typeof v === "number" && isFinite(v) && v > 0 ? v.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") : "—";
-
-  const fmtLatency = (ms) =>
-    typeof ms === "number" && ms > 0 ? (ms >= 1000 ? (ms / 1000).toFixed(1) + "s" : ms + "ms") : "—";
 
   const fmtDate = (iso) => {
     if (!iso) return "—";
@@ -61,9 +58,14 @@
       groupCount: typeof raw.model_group_count === "number" ? raw.model_group_count : Object.keys(groups).length,
       latency: typeof raw.latest_duration_ms === "number" ? raw.latest_duration_ms : null,
       rating: raw.board_votes && typeof raw.board_votes.rating === "number" ? raw.board_votes.rating : null,
-      status: raw.current_status === "success" ? "success" : "failed",
+      status: raw.current_status === "success" ? "success" : raw.current_status === "failed" ? "failed" : "unknown",
       category: raw.consumer_category === "welfare" || raw.category === "welfare" ? "welfare" : "paid",
       ratio: raw.recharge_ratio || "—",
+      registerBonus: typeof raw.register_bonus === "number" ? raw.register_bonus : null,
+      checkinBonus: typeof raw.checkin_bonus === "number" ? raw.checkin_bonus : null,
+      currency: raw.bonus_currency === "USD" ? "$" : raw.bonus_currency === "CNY" ? "¥" : "",
+      githubAge: raw.github_age_required || null,
+      directConnect: raw.direct_connect !== false,
       benefits: Array.isArray(raw.benefit_flags) ? raw.benefit_flags : [],
       tags: (Array.isArray(raw.site_tags) && raw.site_tags.length ? raw.site_tags : raw.tags || []).slice(0, 6),
       testedAt: raw.last_tested_at || null,
@@ -91,20 +93,20 @@
   }
   const SORTERS = {
     rank: (a, b) => a.rank - b.rank,
+    bonus: (a, b) => (b.registerBonus ?? -1) - (a.registerBonus ?? -1),
+    checkin: (a, b) => (b.checkinBonus ?? -1) - (a.checkinBonus ?? -1),
     multiplier: (a, b) => (a.multiplier ?? Infinity) - (b.multiplier ?? Infinity),
     models: (a, b) => b.modelCount - a.modelCount,
-    latency: (a, b) => (a.latency ?? Infinity) - (b.latency ?? Infinity),
     rating: (a, b) => (b.rating ?? -1) - (a.rating ?? -1),
-    tested: (a, b) => new Date(b.testedAt || 0) - new Date(a.testedAt || 0),
   };
 
   function applyFilters() {
     const f = state.filters;
     const list = state.items.filter((item) => {
       if (!matchesQuery(item, f.q)) return false;
-      if (f.status !== "all" && item.status !== f.status) return false;
       if (f.category !== "all" && item.category !== f.category) return false;
-      if (f.benefit && item.benefits.length === 0) return false;
+      if (f.checkin && item.checkinBonus === null) return false;
+      if (f.direct && !item.directConnect) return false;
       return true;
     });
     return list.sort(SORTERS[f.sort] || SORTERS.rank);
@@ -114,17 +116,17 @@
 
   function renderSummary() {
     const total = state.items.length;
-    const healthy = state.items.filter((i) => i.status === "success").length;
-    const multipliers = state.items.map((i) => i.multiplier).filter((v) => typeof v === "number" && v > 0);
-    const cheapest = multipliers.length ? Math.min(...multipliers) : null;
+    const bonuses = state.items.map((i) => i.registerBonus).filter((v) => typeof v === "number");
+    const totalBonus = bonuses.reduce((s, v) => s + v, 0);
+    const withCheckin = state.items.filter((i) => i.checkinBonus !== null).length;
 
     const set = (key, value) => {
       const el = $(`[data-stat="${key}"]`);
       if (el) el.textContent = value;
     };
     set("total", String(total).padStart(2, "0"));
-    set("healthy", total ? `${healthy}/${total}` : "—");
-    set("cheapest", cheapest === null ? "—" : fmtMultiplier(cheapest));
+    set("bonus", totalBonus ? "$" + totalBonus : "—");
+    set("checkin", total ? `${withCheckin}/${total}` : "—");
     set("updated", relTime(state.generatedAt));
 
     const footer = $("[data-footer-updated]");
@@ -140,9 +142,16 @@
     field("rank").textContent = item.rank;
     field("name").textContent = item.name;
     field("description").textContent = item.description;
-    const statusEl = field("status");
-    statusEl.textContent = item.status === "success" ? "接口正常" : "接口异常";
-    statusEl.classList.add(item.status === "success" ? "ok" : "bad");
+
+    // 无法直连的站点单独标出来，这是使用前必须知道的信息
+    const connEl = field("status");
+    if (item.directConnect) {
+      connEl.textContent = "可直连";
+      connEl.classList.add("ok");
+    } else {
+      connEl.textContent = "需代理";
+      connEl.classList.add("bad");
+    }
 
     field("category").textContent = CATEGORY_LABEL[item.category] || "付费";
 
@@ -153,19 +162,19 @@
       tagList.appendChild(li);
     });
 
+    const bonusEl = field("bonus");
+    bonusEl.textContent = item.registerBonus === null ? "—" : item.currency + item.registerBonus;
+    if (item.registerBonus && item.registerBonus >= 100) bonusEl.classList.add("good");
+    field("checkin").textContent = item.checkinBonus === null ? "—" : item.currency + item.checkinBonus;
     field("multiplier").textContent = fmtMultiplier(item.multiplier);
     field("models").textContent = item.modelCount || "—";
-    const latencyEl = field("latency");
-    latencyEl.textContent = fmtLatency(item.latency);
-    if (item.latency && item.latency < 500) latencyEl.classList.add("good");
-    field("rating").textContent = item.rating === null ? "—" : "★" + item.rating;
 
     field("ratio").textContent = item.ratio;
     field("benefits").textContent = item.benefits.length
       ? item.benefits.map((b) => BENEFIT_LABEL[b] || b).join(" · ")
       : "无";
-    field("groupCount").textContent = item.groupCount || "—";
-    field("tested").textContent = fmtDate(item.testedAt);
+    field("githubAge").textContent = item.githubAge || "无要求";
+    field("connect").textContent = item.directConnect ? "可直连" : "需自备代理";
 
     const groupList = field("groups");
     if (item.groups.length) {

@@ -195,7 +195,7 @@ h1 {
 
 .controls {
   display: grid;
-  grid-template-columns: minmax(200px, 1.6fr) repeat(3, minmax(120px, 1fr)) auto;
+  grid-template-columns: minmax(200px, 1.8fr) minmax(130px, 1fr) minmax(110px, 1fr) auto auto;
   gap: 12px;
   padding: 16px;
   background: var(--bg-elevated);

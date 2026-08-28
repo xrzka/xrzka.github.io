@@ -9,8 +9,8 @@
       content="中转站榜单：汇总倍率、充值比例、可用模型、接口测试状态与社区评分，一页对比。"
     />
     <title>中转站榜单 · 倍率与可用性对比</title>
-    <link rel="stylesheet" href="styles.css?v=20260828" />
-    <script src="app.js?v=20260828" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260829" />
+    <script src="app.js?v=20260829" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#board">跳到榜单内容</a>
@@ -48,12 +48,12 @@
             <dd data-stat="total">--</dd>
           </div>
           <div class="summary-card">
-            <dt>接口正常</dt>
-            <dd data-stat="healthy">--</dd>
+            <dt>注册额度合计</dt>
+            <dd data-stat="bonus">--</dd>
           </div>
           <div class="summary-card">
-            <dt>最低倍率</dt>
-            <dd data-stat="cheapest">--</dd>
+            <dt>支持签到</dt>
+            <dd data-stat="checkin">--</dd>
           </div>
           <div class="summary-card">
             <dt>数据更新</dt>
@@ -86,32 +86,27 @@
             <label for="sort">排序</label>
             <select id="sort" name="sort" data-filter="sort">
               <option value="rank">综合排名</option>
+              <option value="bonus">注册额度最高</option>
+              <option value="checkin">签到额度最高</option>
               <option value="multiplier">倍率从低到高</option>
               <option value="models">模型数量最多</option>
-              <option value="latency">响应最快</option>
-              <option value="rating">评分最高</option>
-              <option value="tested">最近检测时间</option>
-            </select>
-          </div>
-          <div class="control">
-            <label for="status">接口状态</label>
-            <select id="status" name="status" data-filter="status">
-              <option value="all">全部</option>
-              <option value="success">正常</option>
-              <option value="failed">异常</option>
             </select>
           </div>
           <div class="control">
             <label for="category">类型</label>
             <select id="category" name="category" data-filter="category">
               <option value="all">全部</option>
-              <option value="welfare">公益</option>
-              <option value="paid">付费</option>
+              <option value="welfare">有赠送</option>
+              <option value="paid">付费为主</option>
             </select>
           </div>
           <div class="control control-checkbox">
-            <input type="checkbox" id="benefit" name="benefit" data-filter="benefit" />
-            <label for="benefit">仅看有注册福利</label>
+            <input type="checkbox" id="checkin" name="checkin" data-filter="checkin" />
+            <label for="checkin">仅看可签到</label>
+          </div>
+          <div class="control control-checkbox">
+            <input type="checkbox" id="direct" name="direct" data-filter="direct" />
+            <label for="direct">仅看可直连</label>
           </div>
         </form>
 
@@ -122,10 +117,11 @@
       <section class="about-section" id="about" aria-labelledby="about-title">
         <h2 id="about-title">数据口径</h2>
         <ul class="about-list">
-          <li>倍率、充值比例来自站点公开接口或提交者填写的快照，不代表模型官方价格。</li>
-          <li>模型与分组来自接口验证；可用性、响应耗时来自定时检测，均带最近检测时间。</li>
-          <li>评分来自社区，仅供参考，不构成对任何站点的担保或推荐。</li>
-          <li>本页是静态快照，由定时任务生成后提交；实时数据请以站点自身为准。</li>
+          <li>注册赠送额度、签到额度、倍率均来自站点公开信息与社区分享，可能随时调整，以站点自身为准。</li>
+          <li>多数站点要求 GitHub 账号注册满一年，卡片内标注了各站的具体要求。</li>
+          <li>标注「需代理」的站点无法直连，需自备网络环境。</li>
+          <li>站点链接含推荐参数。本页仅做信息汇总，不对任何站点的稳定性、额度兑现或资金安全作担保。</li>
+          <li>请为每个站点使用独立的 API Key，不要跨站复用；充值前自行评估风险。</li>
         </ul>
       </section>
     </main>
@@ -149,6 +145,14 @@
           </div>
           <div class="card-metrics">
             <div class="metric">
+              <span class="metric-label">注册送</span>
+              <strong class="metric-value" data-field="bonus"></strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">签到</span>
+              <strong class="metric-value" data-field="checkin"></strong>
+            </div>
+            <div class="metric">
               <span class="metric-label">倍率</span>
               <strong class="metric-value" data-field="multiplier"></strong>
             </div>
@@ -156,22 +160,14 @@
               <span class="metric-label">模型</span>
               <strong class="metric-value" data-field="models"></strong>
             </div>
-            <div class="metric">
-              <span class="metric-label">延迟</span>
-              <strong class="metric-value" data-field="latency"></strong>
-            </div>
-            <div class="metric">
-              <span class="metric-label">评分</span>
-              <strong class="metric-value" data-field="rating"></strong>
-            </div>
           </div>
         </div>
         <div class="card-detail" data-detail hidden>
           <dl class="detail-grid">
             <div><dt>充值比例</dt><dd data-field="ratio"></dd></div>
-            <div><dt>注册福利</dt><dd data-field="benefits"></dd></div>
-            <div><dt>分组数</dt><dd data-field="groupCount"></dd></div>
-            <div><dt>最近检测</dt><dd data-field="tested"></dd></div>
+            <div><dt>福利类型</dt><dd data-field="benefits"></dd></div>
+            <div><dt>GitHub 账号要求</dt><dd data-field="githubAge"></dd></div>
+            <div><dt>网络</dt><dd data-field="connect"></dd></div>
           </dl>
           <div class="detail-block">
             <h4>分组倍率</h4>
