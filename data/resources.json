@@ -1,0 +1,102 @@
+{
+  "generated_at": "2026-08-28T14:06:18Z",
+  "total": 4,
+  "items": [
+    {
+      "resource_id": "res-demo-0001",
+      "resource_name": "示例中转站 A",
+      "description": "低倍率长期稳定混池，支持 gpt / claude / gemini 与多家国产模型，站点直连。",
+      "site_url": "https://example.com/",
+      "rank_position": 1,
+      "displayed_multiplier": 0.4386,
+      "model_count": 60,
+      "model_group_count": 4,
+      "latest_duration_ms": 363,
+      "board_votes": { "rating": 4 },
+      "current_status": "success",
+      "consumer_category": "paid",
+      "recharge_ratio": "1:1",
+      "benefit_flags": ["register", "invite"],
+      "site_tags": ["小额可用", "按量计费", "新手友好", "国内直连"],
+      "last_tested_at": "2026-08-28T14:06:16Z",
+      "group_ratios": { "default": 0.25, "Claude-Pro": 1.2, "Codex-Pro": 0.8, "vip": 0.5 },
+      "models": [
+        { "model_id": "claude-sonnet-4", "display_name": "claude-sonnet-4" },
+        { "model_id": "gpt-4o", "display_name": "gpt-4o" },
+        { "model_id": "gemini-2.5-pro", "display_name": "gemini-2.5-pro" },
+        { "model_id": "deepseek-v3", "display_name": "deepseek-v3" }
+      ]
+    },
+    {
+      "resource_id": "res-demo-0002",
+      "resource_name": "示例公益站 B",
+      "description": "公益性质，每日签到领取额度，模型以开源模型为主，适合轻量试用。",
+      "site_url": "https://example.org/",
+      "rank_position": 2,
+      "displayed_multiplier": 0.0,
+      "model_count": 18,
+      "model_group_count": 1,
+      "latest_duration_ms": 812,
+      "board_votes": { "rating": 5 },
+      "current_status": "success",
+      "consumer_category": "welfare",
+      "recharge_ratio": "免费",
+      "benefit_flags": ["checkin", "register"],
+      "site_tags": ["公益", "每日签到", "开源模型"],
+      "last_tested_at": "2026-08-28T13:40:00Z",
+      "group_ratios": { "default": 0.0 },
+      "models": [
+        { "model_id": "qwen3-max", "display_name": "qwen3-max" },
+        { "model_id": "glm-4.6", "display_name": "glm-4.6" }
+      ]
+    },
+    {
+      "resource_id": "res-demo-0003",
+      "resource_name": "示例中转站 C",
+      "description": "主打 Claude 系列高并发，支持缓存计费，接口偶有波动。",
+      "site_url": "https://example.net/",
+      "rank_position": 3,
+      "displayed_multiplier": 1.15,
+      "model_count": 32,
+      "model_group_count": 3,
+      "latest_duration_ms": 1450,
+      "board_votes": { "rating": 3 },
+      "current_status": "failed",
+      "consumer_category": "paid",
+      "recharge_ratio": "1:1.2",
+      "benefit_flags": [],
+      "site_tags": ["高并发", "缓存计费"],
+      "last_tested_at": "2026-08-28T12:10:00Z",
+      "group_ratios": { "default": 1.15, "turbo": 2.0, "cache": 0.3 },
+      "models": [
+        { "model_id": "claude-opus-4", "display_name": "claude-opus-4" },
+        { "model_id": "claude-haiku-4", "display_name": "claude-haiku-4" }
+      ]
+    },
+    {
+      "resource_id": "res-demo-0004",
+      "resource_name": "示例中转站 D",
+      "description": "综合型站点，充值返利，模型覆盖面广但单价略高。",
+      "site_url": "https://example.dev/",
+      "rank_position": 4,
+      "displayed_multiplier": 0.75,
+      "model_count": 88,
+      "model_group_count": 6,
+      "latest_duration_ms": 496,
+      "board_votes": { "rating": 4 },
+      "current_status": "success",
+      "consumer_category": "paid",
+      "recharge_ratio": "1:0.9",
+      "benefit_flags": ["recharge"],
+      "site_tags": ["模型齐全", "充值返利", "发票支持"],
+      "last_tested_at": "2026-08-28T14:00:00Z",
+      "group_ratios": { "default": 0.75, "pro": 1.5, "lite": 0.4 },
+      "models": [
+        { "model_id": "gpt-5", "display_name": "gpt-5" },
+        { "model_id": "o4-mini", "display_name": "o4-mini" },
+        { "model_id": "grok-4", "display_name": "grok-4" }
+      ]
+    }
+  ]
+}
+
