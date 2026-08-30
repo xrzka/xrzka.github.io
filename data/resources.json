@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T18:48:34Z",
+  "generated_at": "2026-08-30T23:49:57Z",
   "note": "数据来自站点公开信息与社区分享，倍率与额度随时可能变化，以站点自身为准。",
   "items": [
     {
@@ -379,6 +379,47 @@
       ],
       "caveat": "严禁注册多个账号，也不要在付费站重复注册。一旦被判定多号可能直接封禁，导致公益站无法使用。",
       "caveat_tag": "严禁多号"
+    },
+    {
+      "resource_id": "imagefree",
+      "resource_name": "ImageFree",
+      "description": "免费 AI 文生图工具，打开即用，无需注册也无需账号邮箱。不限生成次数、无积分额度，出图不带水印，站点声明可用于商业用途。底层是开源模型 Z-Image-Turbo。",
+      "site_url": "https://imagefree.net/zh",
+      "rank_position": 10,
+      "displayed_multiplier": null,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "USD",
+      "github_age_required": null,
+      "direct_connect": true,
+      "model_count": 1,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "free",
+      "recharge_ratio": "—",
+      "benefit_flags": [],
+      "site_tags": [
+        "文生图",
+        "无需注册",
+        "不限次数",
+        "无水印",
+        "最长边 1024"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {},
+      "models": [
+        {
+          "model_id": "z-image-turbo",
+          "display_name": "Z-Image-Turbo（开源文生图模型）"
+        }
+      ],
+      "site_kind": "AI 文生图工具",
+      "requires_account": false,
+      "availability": "随时可用"
     }
   ]
 }
