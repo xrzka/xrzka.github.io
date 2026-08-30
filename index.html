@@ -9,8 +9,8 @@
       content="中转站榜单：汇总倍率、充值比例、可用模型、接口测试状态与社区评分，一页对比。"
     />
     <title>中转站榜单 · 倍率与可用性对比</title>
-    <link rel="stylesheet" href="styles.css?v=20260830a" />
-    <script src="app.js?v=20260830a" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260830b" />
+    <script src="app.js?v=20260830b" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#board">跳到榜单内容</a>
@@ -22,6 +22,7 @@
       </a>
       <nav class="site-nav" aria-label="页面导航">
         <a href="#board">榜单</a>
+        <a href="#notice">保号须知</a>
         <a href="#about">数据口径</a>
       </nav>
       <div class="header-actions">
@@ -115,12 +116,52 @@
         <div class="board-list" data-board></div>
         <p class="empty-state" data-empty hidden>没有匹配的站点，试试放宽筛选条件。</p>
       </section>
+      <section class="notice-section" id="notice" aria-labelledby="notice-title">
+        <div class="notice-head">
+          <span class="notice-icon" aria-hidden="true">⚠</span>
+          <h2 id="notice-title">保号注意事项</h2>
+        </div>
+        <p class="notice-lead">
+          公益站的额度是站长自掏腰包补贴的，因此几乎都会清理「只领额度不用」的账号。
+          下面几条是踩过坑之后总结的，卡片上带橙色标记的站尤其要注意。
+        </p>
+        <ol class="notice-list">
+          <li>
+            <strong>不要只签到不使用。</strong>
+            GoRouter 就是这么被封的 —— 长期只签到、从不实际调用，账号直接没了。
+            改成每日签到加上真实使用之后至今正常。TabiToken、JustWoker、KKToken
+            官方没公布规则，但同属公益站，建议一样对待。
+          </li>
+          <li>
+            <strong>多个号轮流用，不要养着不动。</strong>
+            把手上的号接进聚合工具轮流跑，既摊平了单站限速，也让每个号都有真实调用记录。
+            这是目前验证有效的做法。
+          </li>
+          <li>
+            <strong>一站一号，别注册多号。</strong>
+            SharedChat 明确禁止多号，也不要在付费站重复注册 —— 一旦被判定多号可能直接封禁，
+            连带失去公益站资格。其他站虽未明说，同样别试。
+          </li>
+          <li>
+            <strong>签到断了就容易被清理。</strong>
+            多数站把连续签到当活跃度信号，长期不登录的号会被回收。想留着的号就每天签。
+          </li>
+          <li>
+            <strong>别把公益站当生产环境。</strong>
+            站点随时可能调整额度、限速或直接关停，重要任务留好备用方案。
+          </li>
+        </ol>
+        <p class="notice-foot">
+          具体封号阈值各站都没公开，以上是实际使用中的经验，不是官方规则。
+        </p>
+      </section>
       <section class="about-section" id="about" aria-labelledby="about-title">
         <h2 id="about-title">数据口径</h2>
         <ul class="about-list">
           <li>注册赠送额度、签到额度、倍率均来自站点公开信息与社区分享，可能随时调整，以站点自身为准。</li>
           <li>部分站点要求 GitHub 账号注册满一年（本表中为 AgentRouter、KKToken、JustWoker），卡片展开可见各站要求。</li>
           <li>标注「需代理」的站点无法直连，需自备网络环境。</li>
+          <li>橙色标记是保号注意事项，展开卡片可看具体说明，详见上方「保号注意事项」。</li>
           <li>站点链接含推荐参数。本页仅做信息汇总，不对任何站点的稳定性、额度兑现或资金安全作担保。</li>
           <li>请为每个站点使用独立的 API Key，不要跨站复用；充值前自行评估风险。</li>
         </ul>

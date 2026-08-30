@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T17:52:14Z",
+  "generated_at": "2026-08-30T18:48:34Z",
   "note": "数据来自站点公开信息与社区分享，倍率与额度随时可能变化，以站点自身为准。",
   "items": [
     {
@@ -89,7 +89,9 @@
           "model_id": "claude-opus-5",
           "display_name": "claude-opus-5"
         }
-      ]
+      ],
+      "caveat_tag": "勿只签到",
+      "caveat": "官方未公布闲置封号规则。同类公益站有过「只签到不使用」被封的先例，建议签到之余保持实际调用。"
     },
     {
       "resource_id": "kktoken",
@@ -133,7 +135,9 @@
           "model_id": "claude-opus-5",
           "display_name": "claude-opus-5"
         }
-      ]
+      ],
+      "caveat_tag": "勿只签到",
+      "caveat": "官方未公布闲置封号规则。同类公益站有过「只签到不使用」被封的先例，建议签到之余保持实际调用。"
     },
     {
       "resource_id": "justwoker",
@@ -175,7 +179,9 @@
           "model_id": "claude-opus-5",
           "display_name": "claude-opus-5"
         }
-      ]
+      ],
+      "caveat_tag": "勿只签到",
+      "caveat": "官方未公布闲置封号规则。同类公益站有过「只签到不使用」被封的先例，建议签到之余保持实际调用。"
     },
     {
       "resource_id": "gorouter",
@@ -213,7 +219,9 @@
           "model_id": "claude-opus-5",
           "display_name": "claude-opus-5"
         }
-      ]
+      ],
+      "caveat_tag": "闲置封号",
+      "caveat": "曾因长期只签到、不实际调用被封号。改为每日签到 + 多号轮流实际使用后至今正常。"
     },
     {
       "resource_id": "true-sota",
