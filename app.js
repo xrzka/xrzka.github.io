@@ -70,6 +70,9 @@
       currency: raw.bonus_currency === "USD" ? "$" : raw.bonus_currency === "CNY" ? "¥" : "",
       githubAge: raw.github_age_required || null,
       directConnect: raw.direct_connect !== false,
+      // 使用禁忌：违规会被封号，比一般标签更重要，单独一个字段免得被 slice 截掉
+      caveat: raw.caveat || "",
+      caveatTag: raw.caveat_tag || "",
       benefits: Array.isArray(raw.benefit_flags) ? raw.benefit_flags : [],
       tags: (Array.isArray(raw.site_tags) && raw.site_tags.length ? raw.site_tags : raw.tags || []).slice(0, 6),
       testedAt: raw.last_tested_at || null,
@@ -165,6 +168,13 @@
       li.textContent = t;
       tagList.appendChild(li);
     });
+    // 禁忌标签追加在末尾并高亮，不参与 tags 的 6 个上限
+    if (item.caveatTag) {
+      const li = document.createElement("li");
+      li.className = "tag-warn";
+      li.textContent = "⚠ " + item.caveatTag;
+      tagList.appendChild(li);
+    }
 
     const bonusEl = field("bonus");
     bonusEl.textContent = item.registerBonus === null ? "—" : item.currency + item.registerBonus;
@@ -179,6 +189,16 @@
       : "无";
     field("githubAge").textContent = item.githubAge || "无要求";
     field("connect").textContent = item.directConnect ? "可直连" : "需自备代理";
+
+    // 使用禁忌：插在明细区最前面，展开就能看到
+    const caveatEl = node.querySelector("[data-field='caveat']");
+    if (caveatEl) {
+      if (item.caveat) {
+        caveatEl.textContent = "⚠ " + item.caveat;
+      } else {
+        caveatEl.remove();
+      }
+    }
 
     const groupList = field("groups");
     if (item.groups.length) {
