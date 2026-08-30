@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T16:40:00Z",
+  "generated_at": "2026-08-30T17:01:40Z",
   "note": "数据来自站点公开信息与社区分享，倍率与额度随时可能变化，以站点自身为准。",
   "items": [
     {
@@ -287,6 +287,48 @@
         {
           "model_id": "deepseek-v4-flash",
           "display_name": "DeepSeek-V4-Flash"
+        }
+      ]
+    },
+    {
+      "resource_id": "closeai-jasperio",
+      "resource_name": "CloseAI",
+      "description": "无限量 image2 图片生成与无限量 gpt-5.5-mini 聊天。生成的图片请尽快下载，站点会不定时删除。邮箱注册，无需 GitHub。",
+      "site_url": "https://jasperio.xyz:8848/",
+      "rank_position": 8,
+      "displayed_multiplier": null,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "USD",
+      "github_age_required": null,
+      "direct_connect": false,
+      "model_count": 2,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "free",
+      "recharge_ratio": "—",
+      "benefit_flags": [],
+      "site_tags": [
+        "无限量 image2",
+        "无限量 gpt-5.5-mini",
+        "图片不定时删除",
+        "邮箱注册",
+        "需代理"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {},
+      "models": [
+        {
+          "model_id": "image2",
+          "display_name": "image2（图片生成）"
+        },
+        {
+          "model_id": "gpt-5.5-mini",
+          "display_name": "gpt-5.5-mini"
         }
       ]
     }
