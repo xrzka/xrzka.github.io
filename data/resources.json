@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T23:49:57Z",
+  "generated_at": "2026-08-31T02:43:59Z",
   "note": "数据来自站点公开信息与社区分享，倍率与额度随时可能变化，以站点自身为准。",
   "items": [
     {
@@ -420,6 +420,88 @@
       "site_kind": "AI 文生图工具",
       "requires_account": false,
       "availability": "随时可用"
+    },
+    {
+      "resource_id": "yesnovelai",
+      "resource_name": "YesNovelAI",
+      "description": "NovelAI 绘图模型公益站，收录 nai-diffusion 3 / 4 / 4.5 / 5 全系共 16 个模型。额度单位是 Gems，只能通过签到和邀请获取。标准尺寸（512×512、832×1216、1216×832、1024×1024，28 步内出 1 张）不计费，超出部分按 NovelAI Anlas 公式折算 Gems。",
+      "site_url": "https://nai.rinko.ai/sign-up?aff=L1Dl",
+      "rank_position": 11,
+      "displayed_multiplier": 1,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "GEMS",
+      "github_age_required": null,
+      "direct_connect": true,
+      "model_count": 16,
+      "model_group_count": 1,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "welfare",
+      "recharge_ratio": "不开放充值",
+      "benefit_flags": [
+        "checkin",
+        "invite"
+      ],
+      "site_tags": [
+        "NovelAI 绘图",
+        "可签到",
+        "邀请获取额度",
+        "标准尺寸免费",
+        "邮箱验证注册"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {
+        "default": 1
+      },
+      "models": [
+        {
+          "model_id": "nai-diffusion-5-full",
+          "display_name": "nai-diffusion-5-full"
+        },
+        {
+          "model_id": "nai-diffusion-5-curated",
+          "display_name": "nai-diffusion-5-curated"
+        },
+        {
+          "model_id": "nai-diffusion-4-5-full",
+          "display_name": "nai-diffusion-4-5-full"
+        },
+        {
+          "model_id": "nai-diffusion-4-5-curated",
+          "display_name": "nai-diffusion-4-5-curated"
+        },
+        {
+          "model_id": "nai-diffusion-4-full",
+          "display_name": "nai-diffusion-4-full"
+        },
+        {
+          "model_id": "nai-diffusion-4-curated",
+          "display_name": "nai-diffusion-4-curated"
+        },
+        {
+          "model_id": "nai-diffusion-3",
+          "display_name": "nai-diffusion-3"
+        },
+        {
+          "model_id": "nai-diffusion-3-furry",
+          "display_name": "nai-diffusion-3-furry"
+        },
+        {
+          "model_id": "inpainting",
+          "display_name": "各版本 inpainting 变体（共 8 个）"
+        }
+      ],
+      "site_kind": "NovelAI 绘图中转站",
+      "availability": "每日可签到",
+      "extra_note": "公益站点，不开放充值，额度全由站长免费发放，请珍惜使用。确需充值可去姊妹站 api.rinko.ai。反馈 QQ 群 709223435。",
+      "feature_tags": [
+        "NovelAI 绘图",
+        "标准尺寸免费"
+      ]
     }
   ]
 }

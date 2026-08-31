@@ -67,12 +67,22 @@
       ratio: raw.recharge_ratio || "—",
       registerBonus: typeof raw.register_bonus === "number" ? raw.register_bonus : null,
       checkinBonus: typeof raw.checkin_bonus === "number" ? raw.checkin_bonus : null,
-      currency: raw.bonus_currency === "USD" ? "$" : raw.bonus_currency === "CNY" ? "¥" : "",
+      currency:
+        raw.bonus_currency === "USD"
+          ? "$"
+          : raw.bonus_currency === "CNY"
+            ? "¥"
+            : // 公益站常自定义额度单位（如 Gems），带空格拼在数字后更易读
+              raw.bonus_currency
+              ? " " + raw.bonus_currency
+              : "",
       githubAge: raw.github_age_required || null,
       directConnect: raw.direct_connect !== false,
       // 使用禁忌：违规会被封号，比一般标签更重要，单独一个字段免得被 slice 截掉
       caveat: raw.caveat || "",
       caveatTag: raw.caveat_tag || "",
+      // 站点自己的补充说明（充值政策、反馈群等），中性信息，不做警示样式
+      extraNote: raw.extra_note || "",
       benefits: Array.isArray(raw.benefit_flags) ? raw.benefit_flags : [],
       tags: (Array.isArray(raw.site_tags) && raw.site_tags.length ? raw.site_tags : raw.tags || []).slice(0, 6),
       testedAt: raw.last_tested_at || null,
@@ -197,6 +207,16 @@
         caveatEl.textContent = "⚠ " + item.caveat;
       } else {
         caveatEl.remove();
+      }
+    }
+
+    // 站点补充说明：中性信息，样式比禁忌弱
+    const extraEl = node.querySelector("[data-field='extraNote']");
+    if (extraEl) {
+      if (item.extraNote) {
+        extraEl.textContent = item.extraNote;
+      } else {
+        extraEl.remove();
       }
     }
 

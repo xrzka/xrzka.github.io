@@ -415,6 +415,18 @@ h1 {
 }
 
 /* ---------- about + footer ---------- */
+/* 站点补充说明：中性信息，弱于禁忌提示 */
+.card-extra {
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
 /* ---------- 保号注意事项 ---------- */
 .notice-section {
   margin-top: 48px;
