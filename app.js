@@ -77,6 +77,8 @@
               ? " " + raw.bonus_currency
               : "",
       githubAge: raw.github_age_required || null,
+      // 账号门槛：不是所有站都用 GitHub，L 站等其他身份源走这个字段
+      accountRequirement: raw.account_requirement || "",
       directConnect: raw.direct_connect !== false,
       // 使用禁忌：违规会被封号，比一般标签更重要，单独一个字段免得被 slice 截掉
       caveat: raw.caveat || "",
@@ -197,7 +199,12 @@
     field("benefits").textContent = item.benefits.length
       ? item.benefits.map((b) => BENEFIT_LABEL[b] || b).join(" · ")
       : "无";
-    field("githubAge").textContent = item.githubAge || "无要求";
+    // GitHub 年限是最常见的门槛，但也有站要求别的身份源（如 Linux DO）。
+    // 标题已改成通用的「账号要求」，所以这里要把 GitHub 补回文案里，
+    // 否则只显示「1年以上」看不出是什么账号满一年。
+    field("githubAge").textContent = item.githubAge
+      ? "GitHub 账号满" + item.githubAge
+      : item.accountRequirement || "无要求";
     field("connect").textContent = item.directConnect ? "可直连" : "需自备代理";
 
     // 使用禁忌：插在明细区最前面，展开就能看到
