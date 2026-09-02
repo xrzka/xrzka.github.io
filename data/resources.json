@@ -338,7 +338,8 @@
           "model_id": "gpt-5.5-mini",
           "display_name": "gpt-5.5-mini"
         }
-      ]
+      ],
+      "ai_subsection": "image"
     },
     {
       "resource_id": "sharedchat",
@@ -419,7 +420,8 @@
       ],
       "site_kind": "AI 文生图工具",
       "requires_account": false,
-      "availability": "随时可用"
+      "availability": "随时可用",
+      "ai_subsection": "image"
     },
     {
       "resource_id": "yesnovelai",
@@ -501,7 +503,8 @@
       "feature_tags": [
         "NovelAI 绘图",
         "标准尺寸免费"
-      ]
+      ],
+      "ai_subsection": "image"
     },
     {
       "resource_id": "lupi-image",
@@ -548,7 +551,8 @@
       "availability": "免费开放",
       "extra_note": "登录方式为 Linux DO 授权，或账号密码配注册码。积分仅代表站内额度，不能兑换或提现。图片链接与历史记录受存储策略影响，重要图片请及时下载。",
       "caveat_tag": "内容规范严格",
-      "caveat": "站点有明确的内容规范：禁止色情露骨、政治敏感、伪造真人肖像等内容，也禁止批量滥用账户或 API。违规会被限流、暂停或关闭账户。账号不得出租、出售或共享登录状态。"
+      "caveat": "站点有明确的内容规范：禁止色情露骨、政治敏感、伪造真人肖像等内容，也禁止批量滥用账户或 API。违规会被限流、暂停或关闭账户。账号不得出租、出售或共享登录状态。",
+      "ai_subsection": "image"
     }
   ]
 }
