@@ -553,6 +553,74 @@
       "caveat_tag": "内容规范严格",
       "caveat": "站点有明确的内容规范：禁止色情露骨、政治敏感、伪造真人肖像等内容，也禁止批量滥用账户或 API。违规会被限流、暂停或关闭账户。账号不得出租、出售或共享登录状态。",
       "ai_subsection": "image"
+    },
+    {
+      "resource_id": "yichang-fufu",
+      "resource_name": "异常芙芙公益",
+      "description": "公益中转站，注册送 60 万额度（站内按 ¥ 显示，约 ¥8.76）。支持每日签到，但额度主要靠去配套论坛做每日任务赚取。",
+      "site_url": "https://ai.kscsnkli.site/sign-up?aff=yun4",
+      "rank_position": 13,
+      "displayed_multiplier": null,
+      "register_bonus": 8.76,
+      "checkin_bonus": null,
+      "bonus_currency": "CNY",
+      "github_age_required": null,
+      "account_requirement": "论坛账号做任务（论坛注册需管理员邀请码）",
+      "direct_connect": true,
+      "model_count": 6,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "welfare",
+      "recharge_ratio": "—",
+      "benefit_flags": [
+        "register",
+        "checkin",
+        "invite"
+      ],
+      "feature_tags": [
+        "论坛做任务换额度"
+      ],
+      "site_tags": [
+        "公益站",
+        "每日签到",
+        "论坛任务",
+        "邀请奖励"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {},
+      "models": [
+        {
+          "model_id": "gpt-6-astra",
+          "display_name": "gpt-6-astra"
+        },
+        {
+          "model_id": "gpt-5.6-sol",
+          "display_name": "gpt-5.6-sol"
+        },
+        {
+          "model_id": "deepseek-v4-pro-0813",
+          "display_name": "deepseek-v4-pro-0813"
+        },
+        {
+          "model_id": "glm-5.3-flash",
+          "display_name": "glm-5.3-flash"
+        },
+        {
+          "model_id": "glm-5.2",
+          "display_name": "glm-5.2"
+        },
+        {
+          "model_id": "kimi-k3",
+          "display_name": "kimi-k3"
+        }
+      ],
+      "caveat_tag": "禁止二次中转",
+      "caveat": "站内公告明写「禁止二次中转，发现封号封 ID」——不要把它的额度再转卖或搭成对外中转。",
+      "extra_note": "赚额度的主路径在论坛 bbs.kscsnkli.site（Flarum）：侧栏「每日任务」页先用 newAPI 用户名或用户 ID + 密码绑定账号，再领每日/每月/一次性奖励，奖励约 30 秒内到账；另有幸运抽奖。注意论坛注册需要管理员发放的邀请码，光注册中转站本身不用邀请码。中转站可用论坛账号登录（OIDC，站内显示为「论坛登录」）。公告称后续没余额时靠邀请他人获取。gpt-6-astra 因成本过高已临时下架，以站内公告为准。"
     }
   ]
 }

@@ -135,8 +135,11 @@
 
   function renderSummary() {
     const total = state.items.length;
-    const bonuses = state.items.map((i) => i.registerBonus).filter((v) => typeof v === "number");
-    const totalBonus = bonuses.reduce((s, v) => s + v, 0);
+    // 只合计美元额度。站点的赠送额度单位并不统一（有 $ / ¥ / Gems / 积分），
+    // 早先这里把所有 registerBonus 不分单位地相加再前缀一个 "$"，
+    // 混进一个 ¥ 站就会算出「$583.76」这种既错单位又带小数的数字。
+    const usd = state.items.filter((i) => i.currency === "$" && typeof i.registerBonus === "number");
+    const totalBonus = usd.reduce((s, i) => s + i.registerBonus, 0);
     const withCheckin = state.items.filter((i) => i.benefits.includes("checkin")).length;
 
     const set = (key, value) => {
@@ -144,7 +147,8 @@
       if (el) el.textContent = value;
     };
     set("total", String(total).padStart(2, "0"));
-    set("bonus", totalBonus ? "$" + totalBonus : "—");
+    // 非整数才保留两位小数，避免 "$575.00" 这种啰嗦写法
+    set("bonus", totalBonus ? "$" + (Number.isInteger(totalBonus) ? totalBonus : totalBonus.toFixed(2)) : "—");
     set("checkin", total ? `${withCheckin}/${total}` : "—");
     set("updated", relTime(state.generatedAt));
 

@@ -46,6 +46,13 @@ site_tags, last_tested_at, group_ratios, models
 
 顶层 `generated_at` 用于显示数据新鲜度。
 
+### 额度单位不统一，合计只算美元
+
+`bonus_currency` 各站不同（`USD` / `CNY` / `Gems` / `积分`）。顶部「注册额度合计（$）」
+**只累加 `bonus_currency` 为 `USD` 的站**，混着加会算出既错单位又带小数的数字
+（收录异常芙芙公益那条 `CNY` 站时踩过：原先不分单位相加得到 `$583.76`）。
+卡片上单站的额度仍按各自单位显示，`normalize()` 里 `currency` 负责选符号。
+
 ## 安全说明
 
 所有文本都走 `textContent` 写入，没有任何 `innerHTML` 赋值，因此数据里的内容不会被当成 HTML 执行。外链 `href` 做了协议白名单，只放行 `http(s)`，避免 `javascript:` 伪协议。
