@@ -1,6 +1,7 @@
 # 中转站榜单（静态前端复刻）
 
-参考 Gitmba（git.mba / maphub.xyz）的榜单页做的**纯静态**版本，可直接部署到 GitHub Pages。
+参考 Gitmba（git.mba / maphub.xyz）的榜单页制作。前台是 GitHub Pages 静态页面；
+站长新增和修改卡片时，使用 Cloudflare Worker + D1 保存覆盖数据。
 
 ## 文件
 
@@ -9,7 +10,8 @@
 | `index.html` | 页面结构，卡片用 `<template>` 定义 |
 | `styles.css` | 样式，含深浅色主题变量 |
 | `app.js` | 原生 JS，无框架无依赖 |
-| `data/resources.json` | 数据快照，目前是 4 条示例数据 |
+| `config.js` | 第一站后台的 Worker / Pages 接口地址 |
+| `data/resources.json` | 静态数据快照，目前是 14 条基础数据 |
 | `.nojekyll` | 关掉 Jekyll，静态文件原样输出 |
 
 ## 已实现
@@ -21,6 +23,7 @@
 - 顶部概览：收录数、接口正常比例、最低倍率、数据更新时间
 - 深浅色主题切换，选择存进 `localStorage`
 - 响应式布局，移动端指标区换行
+- 隐藏式站长后台：新增卡片、修改卡片、撤销覆盖、删除后台新增卡片
 
 ## 本地预览
 
@@ -53,11 +56,24 @@ site_tags, last_tested_at, group_ratios, models
 （收录异常芙芙公益那条 `CNY` 站时踩过：原先不分单位相加得到 `$583.76`）。
 卡片上单站的额度仍按各自单位显示，`normalize()` 里 `currency` 负责选符号。
 
+## 站长后台
+
+访问 `https://xrzka.github.io/#admin`（本地预览则是 `http://127.0.0.1:8899/#admin`）。
+页面不会展示后台入口，密码通过 Cloudflare Worker Secret 校验。登录后可以：
+
+- 新增站点卡片，保存后立即对所有访客可见；
+- 展开任意卡片修改标题、简介、链接、额度、倍率、模型、标签和说明；
+- 撤销静态卡片的全部覆盖；删除由后台新增的卡片。
+
+前端只保存当前内存中的短期 token，刷新后需要重新登录。覆盖与新增数据存放在
+第二站现有 Worker/D1 的独立 `board_*` 表中；配置地址见 `config.js`，部署与设置密码
+见 `../mo_site/worker/README.md` 的“第一站（中转站榜单）共用后台”。
+
 ## 安全说明
 
 所有文本都走 `textContent` 写入，没有任何 `innerHTML` 赋值，因此数据里的内容不会被当成 HTML 执行。外链 `href` 做了协议白名单，只放行 `http(s)`，避免 `javascript:` 伪协议。
 
-## 尚未实现（需要后端）
+## 尚未实现
 
-投票、评论、提交新站点、定时接口检测。GitHub Pages 只能托管静态文件，这些要靠 GitHub Actions 定时任务生成 JSON，或者接 serverless / Giscus。
+投票、评论和定时接口检测仍未实现。新增站点与卡片修改已通过 Cloudflare Worker + D1 后台实现。
 

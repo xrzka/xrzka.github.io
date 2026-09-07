@@ -9,8 +9,9 @@
       content="中转站榜单：汇总倍率、充值比例、可用模型、接口测试状态与社区评分，一页对比。"
     />
     <title>中转站榜单 · 倍率与可用性对比</title>
-    <link rel="stylesheet" href="styles.css?v=20260905b" />
-    <script src="app.js?v=20260905b" defer></script>
+    <script src="config.js?v=20260908a"></script>
+    <link rel="stylesheet" href="styles.css?v=20260908a" />
+    <script src="app.js?v=20260908a" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#board">跳到榜单内容</a>
@@ -62,6 +63,24 @@
           </div>
         </dl>
       </section>
+      <!-- 后台入口：地址栏加 #admin 才显示，真正权限由后端密码控制。 -->
+      <section class="admin-panel" id="admin" data-admin-panel hidden aria-labelledby="admin-title">
+        <h2 id="admin-title"><span aria-hidden="true">🔧</span> 站长后台</h2>
+        <p class="admin-sub" data-admin-sub>登录后可以新增站点，并在卡片中修改内容。</p>
+        <form class="admin-login" data-admin-login>
+          <label for="admin-pw">密码</label>
+          <input type="password" id="admin-pw" autocomplete="current-password" data-admin-input />
+          <button type="submit" class="admin-submit" data-admin-submit>登录</button>
+          <button type="button" class="admin-logout" data-admin-logout hidden>退出</button>
+          <span class="admin-msg" data-admin-msg aria-live="polite"></span>
+        </form>
+        <div class="admin-new" data-admin-new hidden>
+          <button type="button" class="admin-new-toggle" data-admin-new-toggle>+ 新增一个站点</button>
+          <span class="admin-new-msg" data-admin-new-msg aria-live="polite"></span>
+          <div class="admin-new-form" data-admin-new-form hidden></div>
+        </div>
+      </section>
+
       <section class="board-section" id="board" aria-labelledby="board-title">
         <div class="section-heading">
           <div>
@@ -225,6 +244,11 @@
             <a class="visit-link" data-field="link" target="_blank" rel="noreferrer noopener">
               访问站点 ↗
             </a>
+          </div>
+          <div class="card-admin" data-field="adminWrap" hidden>
+            <button type="button" class="card-admin-btn" data-field="adminBtn">编辑这条</button>
+            <span class="card-admin-msg" data-field="adminMsg" aria-live="polite"></span>
+            <div class="card-admin-form" data-field="adminForm" hidden></div>
           </div>
         </div>
       </article>

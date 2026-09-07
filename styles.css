@@ -513,6 +513,85 @@ h1 {
   }
 }
 
+/* ---------- 站长后台（地址加 #admin 才显示） ---------- */
+.admin-panel {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+}
+.admin-panel[hidden], .admin-new[hidden], .card-admin[hidden],
+.admin-new-form[hidden], .card-admin-form[hidden] { display: none; }
+.admin-panel h2 { margin: 0 0 4px; font-size: 16px; }
+.admin-sub { margin: 0 0 12px; color: var(--text-muted); font-size: 12.5px; }
+.admin-login { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.admin-login label { color: var(--text-muted); font-size: 12.5px; }
+.admin-login input, .admin-field input, .admin-field textarea, .admin-field select {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.admin-login input { min-width: 200px; }
+.admin-field textarea { resize: vertical; }
+.admin-submit, .admin-logout, .admin-new-toggle, .card-admin-btn,
+.admin-save, .admin-reset, .admin-delete {
+  padding: 6px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.admin-logout, .admin-new-toggle, .card-admin-btn, .admin-reset {
+  background: transparent;
+  color: var(--accent);
+}
+.admin-delete { border-color: #d97706; background: transparent; color: #d97706; }
+.admin-submit:disabled, .admin-save:disabled, .admin-reset:disabled,
+.admin-delete:disabled { opacity: 0.6; cursor: default; }
+.admin-msg, .admin-new-msg, .card-admin-msg {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.admin-msg.ok, .admin-new-msg.ok, .card-admin-msg.ok { color: var(--ok); }
+.admin-msg.bad, .admin-new-msg.bad, .card-admin-msg.bad { color: #d97706; }
+
+.admin-new, .card-admin {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.admin-new-form, .card-admin-form {
+  display: grid;
+  gap: 10px;
+  max-width: 680px;
+  margin-top: 12px;
+}
+.admin-field { display: grid; gap: 4px; }
+.admin-field > span { color: var(--text-muted); font-size: 12px; }
+.admin-field > span em {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 10.5px;
+  font-style: normal;
+}
+.admin-field-inline { display: flex; align-items: center; gap: 8px; }
+.admin-field-inline input { width: auto; }
+.admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.admin-reset[hidden] { display: none; }
+
 
 
 
