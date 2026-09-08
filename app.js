@@ -343,7 +343,9 @@
   }
 
   function rebuild() {
-    state.items = state.rawItems.concat(state.customItems).map(normalize);
+    state.items = state.rawItems.concat(state.customItems)
+      .filter((raw) => !(state.overrides[raw && raw.resource_id] || {}).deleted)
+      .map(normalize);
     renderSummary();
     renderBoard();
   }
@@ -529,20 +531,33 @@
     reset.textContent = "撤销全部改动";
     reset.hidden = !Object.keys(override).some((key) => key !== "updated");
     actions.appendChild(reset);
-    if (item.isCustom) {
-      const del = document.createElement("button");
-      del.type = "button";
-      del.className = "admin-delete";
-      del.textContent = "删除这条";
-      actions.appendChild(del);
-      del.addEventListener("click", async () => {
-        if (!confirm(`确定删除「${item.name}」？此操作不可撤销。`)) return;
-        del.disabled = true;
-        const result = await adminFetch("/api/board/admin/item/delete", { id: item.id });
-        if (!result.ok) { del.disabled = false; return say(result.error, "bad"); }
-        await refreshRemote();
-      });
-    }
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "admin-delete";
+    del.textContent = "删除这条";
+    actions.appendChild(del);
+    del.addEventListener("click", async () => {
+      const detail = item.isCustom
+        ? "此操作不可撤销。"
+        : "这会对所有访客隐藏该卡片，可在后台的「已删除卡片」中恢复。";
+      if (!confirm(`确定删除「${item.name}」？${detail}`)) return;
+      del.disabled = true;
+      const result = item.isCustom
+        ? await adminFetch("/api/board/admin/item/delete", { id: item.id })
+        : await adminFetch("/api/board/admin/override", {
+            item_id: item.id, fields: { deleted: true },
+          });
+      if (!result.ok) { del.disabled = false; return say(result.error, "bad"); }
+      const panelMsg = $("[data-admin-new-msg]");
+      if (panelMsg) {
+        panelMsg.textContent = item.isCustom
+          ? `已删除「${item.name}」`
+          : `已隐藏「${item.name}」，可在「已删除卡片」中恢复`;
+        panelMsg.className = "admin-new-msg ok";
+      }
+      await refreshRemote();
+      renderDeletedAdmin();
+    });
     box.appendChild(actions);
     const say = (text, kind = "") => {
       msg.textContent = text;
@@ -580,6 +595,60 @@
     });
   }
 
+  function renderDeletedAdmin() {
+    const wrap = $("[data-admin-deleted]");
+    const toggle = $("[data-admin-deleted-toggle]");
+    const list = $("[data-admin-deleted-list]");
+    const msg = $("[data-admin-deleted-msg]");
+    if (!wrap || !toggle || !list || !msg) return;
+    const rawById = new Map(state.rawItems.map((raw) => [String(raw.resource_id || ""), raw]));
+    const deleted = Object.entries(state.overrides)
+      .filter(([id, fields]) => fields && fields.deleted === true && rawById.has(id))
+      .map(([id, fields]) => ({
+        id,
+        name: fields.resource_name || rawById.get(id).resource_name || id,
+      }));
+    toggle.textContent = `已删除卡片（${deleted.length}）`;
+    list.textContent = "";
+    if (!deleted.length) {
+      const empty = document.createElement("p");
+      empty.className = "admin-deleted-empty";
+      empty.textContent = "暂无已删除的静态卡片";
+      list.appendChild(empty);
+      return;
+    }
+    deleted.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "admin-deleted-row";
+      const label = document.createElement("span");
+      label.textContent = `${item.name}（${item.id}）`;
+      const restore = document.createElement("button");
+      restore.type = "button";
+      restore.className = "admin-restore";
+      restore.textContent = "恢复";
+      restore.addEventListener("click", async () => {
+        restore.disabled = true;
+        msg.textContent = "恢复中…";
+        msg.className = "admin-new-msg";
+        const result = await adminFetch("/api/board/admin/override", {
+          item_id: item.id, fields: {}, clear_fields: ["deleted"],
+        });
+        restore.disabled = false;
+        if (!result.ok) {
+          msg.textContent = result.error;
+          msg.className = "admin-new-msg bad";
+          return;
+        }
+        msg.textContent = `已恢复「${item.name}」`;
+        msg.className = "admin-new-msg ok";
+        await refreshRemote();
+        renderDeletedAdmin();
+      });
+      row.append(label, restore);
+      list.appendChild(row);
+    });
+  }
+
   function renderAdmin() {
     const panel = $("[data-admin-panel]");
     if (!panel) return;
@@ -596,8 +665,14 @@
     logout.hidden = !logged;
     label.hidden = logged;
     $("[data-admin-new]").hidden = !logged;
+    const deletedWrap = $("[data-admin-deleted]");
+    if (deletedWrap) {
+      deletedWrap.hidden = !logged;
+      if (logged) renderDeletedAdmin();
+      else $("[data-admin-deleted-list]").hidden = true;
+    }
     $("[data-admin-sub]").textContent = logged
-      ? "已登录。可新增站点；展开卡片后点「编辑这条」修改，保存立即生效。"
+      ? "已登录。可新增站点；展开卡片后可修改或删除，静态卡片删除后可以恢复。"
       : "登录方式与第二站相同：密码在 Cloudflare Secret 中校验。";
   }
 
@@ -640,6 +715,12 @@
       box.hidden = open;
       toggle.textContent = open ? "+ 新增一个站点" : "收起";
       if (!open) buildAdminNewForm(box, newMsg);
+    });
+    const deletedToggle = $("[data-admin-deleted-toggle]");
+    const deletedList = $("[data-admin-deleted-list]");
+    deletedToggle.addEventListener("click", () => {
+      deletedList.hidden = !deletedList.hidden;
+      renderDeletedAdmin();
     });
     window.addEventListener("hashchange", renderAdmin);
     renderAdmin();

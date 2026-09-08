@@ -9,9 +9,9 @@
       content="中转站榜单：汇总倍率、充值比例、可用模型、接口测试状态与社区评分，一页对比。"
     />
     <title>中转站榜单 · 倍率与可用性对比</title>
-    <script src="config.js?v=20260908a"></script>
-    <link rel="stylesheet" href="styles.css?v=20260908a" />
-    <script src="app.js?v=20260908a" defer></script>
+    <script src="config.js?v=20260908b"></script>
+    <link rel="stylesheet" href="styles.css?v=20260908b" />
+    <script src="app.js?v=20260908b" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#board">跳到榜单内容</a>
@@ -78,6 +78,13 @@
           <button type="button" class="admin-new-toggle" data-admin-new-toggle>+ 新增一个站点</button>
           <span class="admin-new-msg" data-admin-new-msg aria-live="polite"></span>
           <div class="admin-new-form" data-admin-new-form hidden></div>
+        </div>
+        <div class="admin-deleted" data-admin-deleted hidden>
+          <button type="button" class="admin-new-toggle" data-admin-deleted-toggle>
+            已删除卡片（0）
+          </button>
+          <span class="admin-new-msg" data-admin-deleted-msg aria-live="polite"></span>
+          <div class="admin-deleted-list" data-admin-deleted-list hidden></div>
         </div>
       </section>
 

@@ -522,8 +522,8 @@ h1 {
   border-left: 3px solid var(--accent);
   border-radius: 12px;
 }
-.admin-panel[hidden], .admin-new[hidden], .card-admin[hidden],
-.admin-new-form[hidden], .card-admin-form[hidden] { display: none; }
+.admin-panel[hidden], .admin-new[hidden], .admin-deleted[hidden], .card-admin[hidden],
+.admin-new-form[hidden], .admin-deleted-list[hidden], .card-admin-form[hidden] { display: none; }
 .admin-panel h2 { margin: 0 0 4px; font-size: 16px; }
 .admin-sub { margin: 0 0 12px; color: var(--text-muted); font-size: 12.5px; }
 .admin-login { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
@@ -565,11 +565,17 @@ h1 {
 .admin-msg.ok, .admin-new-msg.ok, .card-admin-msg.ok { color: var(--ok); }
 .admin-msg.bad, .admin-new-msg.bad, .card-admin-msg.bad { color: #d97706; }
 
-.admin-new, .card-admin {
+.admin-new, .admin-deleted, .card-admin {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px dashed var(--border);
 }
+.admin-deleted-list { margin-top: 10px; display: grid; gap: 7px; max-width: 720px; }
+.admin-deleted-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; }
+.admin-deleted-row span { min-width: 0; overflow-wrap: anywhere; color: var(--text-muted); font-size: 12px; }
+.admin-deleted-empty { margin: 0; color: var(--text-muted); font-size: 12px; }
+.admin-restore { padding: 4px 11px; border: 1px solid var(--accent); border-radius: 7px; background: transparent; color: var(--accent); font: inherit; font-size: 12px; cursor: pointer; }
+.admin-restore:disabled { opacity: 0.6; cursor: default; }
 .admin-new-form, .card-admin-form {
   display: grid;
   gap: 10px;
