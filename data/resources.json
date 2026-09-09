@@ -666,6 +666,56 @@
       "caveat_tag": "禁止自动签到",
       "caveat": "使用条款第 3、4 条明写「脚本签到视为滥用」「禁止自动签到」，违规会取消奖励、扣回额度或封禁 —— 这个站请手动签到，不要挂进自动签到工具。另有公告：长时间不使用的账号余额将被清零，所以别只签到不调用。",
       "extra_note": "Base URL 为 https://motomoto.lol/v1（OpenAI 兼容 /v1/chat/completions），令牌在控制台创建。签到与登录都挂着 Cloudflare Turnstile，需真人过一次验证。邀请奖励约 $40，需对方产生约 $2 真实消耗后结算，每天最多 3 笔、累计 20 笔。站点提供工单与 /appeal 申诉通道。额度是站内记账单位，不可提现，官方不承诺可用性。另可在「数据授权」页选择是否授权训练数据。"
+    },
+    {
+      "resource_id": "huihuiyun",
+      "resource_name": "慧慧云",
+      "description": "公益中转站，QQ 邮箱可以注册，验证码可能会被投进垃圾箱。注册赠送可免费使用一天的公益组，另送 0.15 额度；持续使用主要依靠邀请新用户。",
+      "site_url": "https://api.huihuiyun.top/register?aff=WG9BTQ8MZJCF",
+      "rank_position": 15,
+      "displayed_multiplier": 0.01,
+      "register_bonus": 0.15,
+      "checkin_bonus": null,
+      "bonus_currency": "USD",
+      "github_age_required": null,
+      "account_requirement": "QQ 邮箱注册（验证码可能在垃圾箱）",
+      "direct_connect": true,
+      "model_count": 2,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "welfare",
+      "recharge_ratio": "—",
+      "benefit_flags": [
+        "register",
+        "invite"
+      ],
+      "site_tags": [
+        "公益站",
+        "QQ 邮箱注册",
+        "注册赠送",
+        "邀请续用"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {
+        "deepseek-v4-flash-ga-260731": 0.01
+      },
+      "models": [
+        {
+          "model_id": "deepseek-v4-flash-ga-260731",
+          "display_name": "deepseek-v4-flash-ga-260731"
+        },
+        {
+          "model_id": "grok-4.6-random",
+          "display_name": "grok-4.6 等公益组随机路由"
+        }
+      ],
+      "caveat_tag": "长期使用靠邀请",
+      "caveat": "注册赠送的公益组免费权限只有一天；想长期或不限时使用，需要继续邀请新用户，不能把它当作永久免费额度。",
+      "extra_note": "实测可用 QQ 邮箱注册；如果收不到验证码，请先检查垃圾邮件箱。deepseek-v4-flash-ga-260731 倍率为 0.01。公益组内含 grok-4.6 等模型，采用随机路由，实际命中的模型以站内结果为准。"
     }
   ]
 }
