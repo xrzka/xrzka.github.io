@@ -765,6 +765,74 @@
       "caveat_tag": "接入方式不同",
       "caveat": "GLM-4.7-Flash 是 Hermes 原生支持的 provider，可配置 GLM_API_KEY；混元 Lite 和 Agnes-2.0-Flash 并非 Hermes 原生 provider，需要自行填写兼容 endpoint 与 API Key，不能按原生 GLM 的方式配置。",
       "extra_note": "GLM-4.7-Flash 具备完整 Agent 工具调用能力，适合编码、长上下文和工作流。腾讯云混元 Lite 的输入、输出免费，但需自定义 endpoint 接入。Agnes-2.0-Flash 自 2026-06-01 起免费开放，支持上下文与 OpenAI 兼容自定义 endpoint，但免费层有限流，建议作为备用。各平台免费政策、限流和接口兼容性可能调整，请以服务商最新说明为准。"
+    },
+    {
+      "resource_id": "laisi-super-api",
+      "resource_name": "莱斯超级API",
+      "description": "仅供个人学习的免费公益 API，当前不支持充值，通过每日签到领取额度；公开价格页列出 29 个模型。",
+      "site_url": "https://laisiai.tw.cpolar.io/sign-up?aff=dSVt",
+      "rank_position": 17,
+      "displayed_multiplier": null,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "CUSTOM",
+      "github_age_required": null,
+      "account_requirement": "需前往独立注册站获取定期公布的注册码",
+      "direct_connect": true,
+      "model_count": 29,
+      "model_group_count": 9,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "welfare",
+      "recharge_ratio": "不支持充值",
+      "benefit_flags": [
+        "checkin"
+      ],
+      "site_tags": [
+        "公益站",
+        "每日签到",
+        "注册码注册",
+        "OpenAI 兼容"
+      ],
+      "last_tested_at": "2026-09-10",
+      "group_ratios": {
+        "不稳定": 0.85,
+        "逆向": 0.15,
+        "逆向+高速": 0.18,
+        "Codex兼容": 1.1
+      },
+      "models": [
+        {
+          "model_id": "deepseek-v4-pro",
+          "display_name": "DeepSeek V4 Pro（含 :tool）"
+        },
+        {
+          "model_id": "gpt-5.4-mini",
+          "display_name": "GPT-5.4 Mini / Nano（含 :tool）"
+        },
+        {
+          "model_id": "gemini-3.5-flash",
+          "display_name": "Gemini 3.5 Flash"
+        },
+        {
+          "model_id": "qwen3-large",
+          "display_name": "Qwen3 Large / Small（含 :tool）"
+        },
+        {
+          "model_id": "minimax-m2.5",
+          "display_name": "MiniMax M2.5（含 :tool）"
+        },
+        {
+          "model_id": "other-models",
+          "display_name": "另有 Gemini、Mistral、白鹿、LFM、Nemotron 等"
+        }
+      ],
+      "caveat_tag": "限 3 RPM",
+      "caveat": "站方公告明确仅限个人学习用途，成本原因限制为 3 RPM。主站不能直接注册，必须通过独立注册站并使用定期公布的注册码；禁止多账号，站方会封禁傀儡账号。",
+      "extra_note": "Base URL 为 https://laisiai.tw.cpolar.io/v1，公开支持 OpenAI /v1/chat/completions；Responses 兼容性较差。Codex 需降级至 0.80.0 以下并选带 :tool 后缀或“工具”标签的模型；只有这些模型支持真正的工具调用。逆向渠道不保证模型真实性与稳定性，部分上游可能波动。注册入口为 https://laisiaisignup.tw.cpolar.io，注册码由站方定期发布。"
     }
   ]
 }
