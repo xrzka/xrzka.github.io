@@ -598,6 +598,43 @@ h1 {
 .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .admin-reset[hidden] { display: none; }
 
+/* ---------- 废站（墓园）标记 ---------- */
+.dead-pill {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bad);
+  color: #fff;
+}
+.board-card.dead { border-left: 3px solid var(--bad); opacity: 0.66; }
+.board-card.dead:hover { border-color: var(--bad); transform: none; }
+.board-card.dead[aria-expanded="true"] { border-color: var(--bad); }
+.board-card.dead .card-title { text-decoration: line-through; text-decoration-thickness: 1px; }
+.board-card.dead .rank-badge { background: var(--bad-soft); color: var(--bad); }
+.card-deadnote {
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--bad);
+  border-left-width: 3px;
+  border-radius: 8px;
+  color: var(--bad);
+  font-size: 13px;
+}
+.admin-dead-toggle {
+  padding: 6px 14px;
+  border: 1px solid var(--bad);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--bad);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.admin-dead-toggle:disabled { opacity: 0.6; cursor: default; }
+.admin-deadnew-toggle { border-color: var(--bad); color: var(--bad); }
+
 
 
 

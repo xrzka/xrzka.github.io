@@ -20,7 +20,7 @@
     customItems: [],
     overrides: {},
     generatedAt: null,
-    filters: { q: "", sort: "rank", category: "all", checkin: false, direct: false },
+    filters: { q: "", sort: "rank", category: "all", checkin: false, direct: false, dead: false },
   };
 
   let apiBase = "";
@@ -96,6 +96,8 @@
       directConnect: source.direct_connect !== false,
       caveat: source.caveat || "",
       caveatTag: source.caveat_tag || "",
+      dead: source.dead === true,
+      deadNote: source.dead_note || "",
       extraNote: source.extra_note || "",
       benefits: Array.isArray(source.benefit_flags) ? source.benefit_flags : [],
       tags: (Array.isArray(source.site_tags) && source.site_tags.length ? source.site_tags : source.tags || []).slice(0, 6),
@@ -140,21 +142,28 @@
       if (f.category !== "all" && item.category !== f.category) return false;
       if (f.checkin && !item.benefits.includes("checkin")) return false;
       if (f.direct && !item.directConnect) return false;
+      if (f.dead && !item.dead) return false;
       return true;
     });
-    return list.sort(SORTERS[f.sort] || SORTERS.rank);
+    const cmp = SORTERS[f.sort] || SORTERS.rank;
+    // 废站统一沉底当「墓园」，正常站点的相对顺序不受影响；勾了「仅看废站」就直接按所选排序。
+    if (f.dead) return list.sort(cmp);
+    return list.sort((a, b) => (a.dead ? 1 : 0) - (b.dead ? 1 : 0) || cmp(a, b));
   }
 
   /* ---------- 渲染 ---------- */
 
   function renderSummary() {
-    const total = state.items.length;
+    // 「当前收录」只算活站；废站进墓园单独计数，不再贡献额度合计。
+    const alive = state.items.filter((i) => !i.dead);
+    const total = alive.length;
+    const deadCount = state.items.length - total;
     // 只合计美元额度。站点的赠送额度单位并不统一（有 $ / ¥ / Gems / 积分），
     // 早先这里把所有 registerBonus 不分单位地相加再前缀一个 "$"，
     // 混进一个 ¥ 站就会算出「$583.76」这种既错单位又带小数的数字。
-    const usd = state.items.filter((i) => i.currency === "$" && typeof i.registerBonus === "number");
+    const usd = alive.filter((i) => i.currency === "$" && typeof i.registerBonus === "number");
     const totalBonus = usd.reduce((s, i) => s + i.registerBonus, 0);
-    const withCheckin = state.items.filter((i) => i.benefits.includes("checkin")).length;
+    const withCheckin = alive.filter((i) => i.benefits.includes("checkin")).length;
 
     const set = (key, value) => {
       const el = $(`[data-stat="${key}"]`);
@@ -164,6 +173,7 @@
     // 非整数才保留两位小数，避免 "$575.00" 这种啰嗦写法
     set("bonus", totalBonus ? "$" + (Number.isInteger(totalBonus) ? totalBonus : totalBonus.toFixed(2)) : "—");
     set("checkin", total ? `${withCheckin}/${total}` : "—");
+    set("dead", String(deadCount).padStart(2, "0"));
     set("updated", relTime(state.generatedAt));
 
     const footer = $("[data-footer-updated]");
@@ -191,6 +201,12 @@
     }
 
     field("category").textContent = CATEGORY_LABEL[item.category] || "付费";
+
+    // 废站标记：整卡置灰 + 红色「已废」徽标，明细里展示废站原因
+    if (item.dead) {
+      node.classList.add("dead");
+      field("deadPill").hidden = false;
+    }
 
     const tagList = field("tags");
     item.tags.forEach((t) => {
@@ -242,6 +258,17 @@
         extraEl.textContent = item.extraNote;
       } else {
         extraEl.remove();
+      }
+    }
+
+    // 废站原因：插在明细区最前面
+    const deadNoteEl = node.querySelector("[data-field='deadNote']");
+    if (deadNoteEl) {
+      if (item.deadNote) {
+        deadNoteEl.hidden = false;
+        deadNoteEl.textContent = "☠ 已废：" + item.deadNote;
+      } else {
+        deadNoteEl.remove();
       }
     }
 
@@ -421,6 +448,8 @@
     { key: "model_count", prop: "modelCount", label: "模型数量", type: "number-null" },
     { key: "models", prop: "modelNames", label: "模型（每行或逗号分隔）", type: "list" },
     { key: "consumer_category", prop: "category", label: "站点类型", type: "category" },
+    { key: "dead", prop: "dead", label: "标记为废站", type: "checkbox" },
+    { key: "dead_note", prop: "deadNote", label: "废站原因（已关站 / 无模型可用…）", type: "text" },
     { key: "direct_connect", prop: "directConnect", label: "可直连", type: "checkbox" },
     { key: "github_age_required", prop: "githubAge", label: "GitHub 账号要求", type: "text" },
     { key: "account_requirement", prop: "accountRequirement", label: "其他账号要求", type: "text" },
@@ -482,7 +511,7 @@
     box.textContent = "";
     const inputs = {};
     ADMIN_FIELDS.forEach((field) => {
-      const defaults = { rank: state.items.length + 1, category: "welfare", directConnect: true };
+      const defaults = { rank: state.items.length + 1, category: "welfare", directConnect: true, dead: false };
       inputs[field.key] = addAdminField(box, field, defaults[field.prop], false);
     });
     const actions = document.createElement("div");
@@ -511,6 +540,55 @@
     });
   }
 
+  /** 后台快速新增废站：站点名是唯一必填，其余留给展开卡片后再补。 */
+  function buildAdminDeadForm(box, msg) {
+    box.textContent = "";
+    const inputs = {};
+    [
+      { key: "name", label: "站点名 *", type: "text" },
+      { key: "url", label: "站点链接（可留空）", type: "text" },
+      { key: "note", label: "废站原因（已关站 / 已无模型可用…，可留空）", type: "text" },
+      { key: "desc", label: "补充说明（可留空）", type: "textarea" },
+    ].forEach((field) => {
+      inputs[field.key] = addAdminField(box, field, "", false);
+    });
+    const actions = document.createElement("div");
+    actions.className = "admin-actions";
+    const submit = document.createElement("button");
+    submit.type = "button";
+    submit.className = "admin-save";
+    submit.textContent = "☠ 加入废站";
+    actions.appendChild(submit);
+    box.appendChild(actions);
+    const say = (text, kind = "") => {
+      msg.textContent = text;
+      msg.className = "admin-new-msg" + (kind ? " " + kind : "");
+    };
+    submit.addEventListener("click", async () => {
+      const name = inputs.name.value.trim();
+      if (!name) return say("站点名不能为空", "bad");
+      const body = {
+        resource_name: name,
+        dead: true,
+        consumer_category: "welfare",
+        rank_position: state.items.length + 1,
+      };
+      const url = inputs.url.value.trim();
+      if (url) body.site_url = url;
+      const note = inputs.note.value.trim().slice(0, 200);
+      if (note) body.dead_note = note;
+      const desc = inputs.desc.value.trim();
+      if (desc) body.description = desc.slice(0, 500);
+      submit.disabled = true;
+      say("添加中…");
+      const result = await adminFetch("/api/board/admin/item", body);
+      submit.disabled = false;
+      if (!result.ok) return say(result.error, "bad");
+      say(`已把「${name}」加入废站，所有访客立即可见`, "ok");
+      await refreshRemote();
+    });
+  }
+
   function buildAdminEditor(item, box, msg) {
     box.textContent = "";
     const override = state.overrides[item.id] || {};
@@ -531,6 +609,43 @@
     reset.textContent = "撤销全部改动";
     reset.hidden = !Object.keys(override).some((key) => key !== "updated");
     actions.appendChild(reset);
+    // 一键加入/移出废站：不用展开逐项改字段
+    const deadBtn = document.createElement("button");
+    deadBtn.type = "button";
+    deadBtn.className = "admin-dead-toggle";
+    deadBtn.textContent = item.dead ? "移出废站" : "☠ 加入废站";
+    deadBtn.addEventListener("click", async () => {
+      if (item.dead) {
+        if (!confirm(`把「${item.name}」移出废站？`)) return;
+        deadBtn.disabled = true;
+        say("处理中…");
+        const result = await adminFetch("/api/board/admin/override", {
+          item_id: item.id,
+          fields: {},
+          clear_fields: ["dead", "dead_note"],
+        });
+        deadBtn.disabled = false;
+        if (!result.ok) return say(result.error, "bad");
+        adminFlash = { id: item.id, text: "已移出废站", kind: "ok" };
+        await refreshRemote();
+        adminFlash = null;
+      } else {
+        const reason = prompt(`把「${item.name}」加入废站。原因（可留空）：`, item.deadNote || "");
+        if (reason === null) return;
+        deadBtn.disabled = true;
+        say("处理中…");
+        const fields = { dead: true };
+        const note = reason.trim().slice(0, 200);
+        if (note) fields.dead_note = note;
+        const result = await adminFetch("/api/board/admin/override", { item_id: item.id, fields });
+        deadBtn.disabled = false;
+        if (!result.ok) return say(result.error, "bad");
+        adminFlash = { id: item.id, text: "已加入废站，所有访客可见", kind: "ok" };
+        await refreshRemote();
+        adminFlash = null;
+      }
+    });
+    actions.appendChild(deadBtn);
     const del = document.createElement("button");
     del.type = "button";
     del.className = "admin-delete";
@@ -665,6 +780,8 @@
     logout.hidden = !logged;
     label.hidden = logged;
     $("[data-admin-new]").hidden = !logged;
+    const deadNewWrap = $("[data-admin-deadnew]");
+    if (deadNewWrap) deadNewWrap.hidden = !logged;
     const deletedWrap = $("[data-admin-deleted]");
     if (deletedWrap) {
       deletedWrap.hidden = !logged;
@@ -672,7 +789,7 @@
       else $("[data-admin-deleted-list]").hidden = true;
     }
     $("[data-admin-sub]").textContent = logged
-      ? "已登录。可新增站点；展开卡片后可修改或删除，静态卡片删除后可以恢复。"
+      ? "已登录。可新增站点或废站；展开卡片后可修改、一键加入废站或删除，静态卡片删除后可以恢复。"
       : "登录方式与第二站相同：密码在 Cloudflare Secret 中校验。";
   }
 
@@ -716,6 +833,17 @@
       toggle.textContent = open ? "+ 新增一个站点" : "收起";
       if (!open) buildAdminNewForm(box, newMsg);
     });
+    const deadToggle = $("[data-admin-deadnew-toggle]");
+    const deadBox = $("[data-admin-deadnew-form]");
+    const deadMsg = $("[data-admin-deadnew-msg]");
+    if (deadToggle && deadBox && deadMsg) {
+      deadToggle.addEventListener("click", () => {
+        const open = !deadBox.hidden;
+        deadBox.hidden = open;
+        deadToggle.textContent = open ? "☠ 新增废站（只填名字就行）" : "收起";
+        if (!open) buildAdminDeadForm(deadBox, deadMsg);
+      });
+    }
     const deletedToggle = $("[data-admin-deleted-toggle]");
     const deletedList = $("[data-admin-deleted-list]");
     deletedToggle.addEventListener("click", () => {

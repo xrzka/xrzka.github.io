@@ -9,9 +9,9 @@
       content="中转站榜单：汇总倍率、充值比例、可用模型、接口测试状态与社区评分，一页对比。"
     />
     <title>中转站榜单 · 倍率与可用性对比</title>
-    <script src="config.js?v=20260908b"></script>
-    <link rel="stylesheet" href="styles.css?v=20260908b" />
-    <script src="app.js?v=20260908b" defer></script>
+    <script src="config.js?v=20260915a"></script>
+    <link rel="stylesheet" href="styles.css?v=20260915a" />
+    <script src="app.js?v=20260915a" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#board">跳到榜单内容</a>
@@ -58,6 +58,10 @@
             <dd data-stat="checkin">--</dd>
           </div>
           <div class="summary-card">
+            <dt>已废（墓园）</dt>
+            <dd data-stat="dead">--</dd>
+          </div>
+          <div class="summary-card">
             <dt>数据更新</dt>
             <dd data-stat="updated">--</dd>
           </div>
@@ -78,6 +82,13 @@
           <button type="button" class="admin-new-toggle" data-admin-new-toggle>+ 新增一个站点</button>
           <span class="admin-new-msg" data-admin-new-msg aria-live="polite"></span>
           <div class="admin-new-form" data-admin-new-form hidden></div>
+        </div>
+        <div class="admin-new" data-admin-deadnew hidden>
+          <button type="button" class="admin-new-toggle admin-deadnew-toggle" data-admin-deadnew-toggle>
+            ☠ 新增废站（只填名字就行）
+          </button>
+          <span class="admin-new-msg" data-admin-deadnew-msg aria-live="polite"></span>
+          <div class="admin-new-form" data-admin-deadnew-form hidden></div>
         </div>
         <div class="admin-deleted" data-admin-deleted hidden>
           <button type="button" class="admin-new-toggle" data-admin-deleted-toggle>
@@ -136,6 +147,10 @@
             <input type="checkbox" id="direct" name="direct" data-filter="direct" />
             <label for="direct">仅看可直连</label>
           </div>
+          <div class="control control-checkbox">
+            <input type="checkbox" id="deadonly" name="deadonly" data-filter="dead" />
+            <label for="deadonly">仅看废站</label>
+          </div>
         </form>
 
         <p class="result-count" data-result-count aria-live="polite"></p>
@@ -187,6 +202,7 @@
           <li>注册赠送额度、签到额度、倍率均来自站点公开信息与社区分享，可能随时调整，以站点自身为准。</li>
           <li>账号门槛各站不同：AgentRouter、KKToken、JustWoker 要求 GitHub 账号注册满一年，噜皮生图需要 Linux DO 账号，其余多为邮箱注册。卡片展开可见各站要求。</li>
           <li>标注「需代理」的站点无法直连，需自备网络环境。</li>
+          <li>带「☠ 已废」标记的站点已停止服务或没有可用模型，仅作记录留存，可勾选「仅看废站」查看。</li>
           <li>橙色标记是保号注意事项，展开卡片可看具体说明，详见上方「保号注意事项」。</li>
           <li>站点链接含推荐参数。本页仅做信息汇总，不对任何站点的稳定性、额度兑现或资金安全作担保。</li>
           <li>请为每个站点使用独立的 API Key，不要跨站复用；充值前自行评估风险。</li>
@@ -207,6 +223,7 @@
               <h3 class="card-title" data-field="name"></h3>
               <span class="status-pill" data-field="status"></span>
               <span class="category-pill" data-field="category"></span>
+              <span class="dead-pill" data-field="deadPill" hidden>☠ 已废</span>
             </div>
             <p class="card-desc" data-field="description"></p>
             <ul class="tag-list" data-field="tags"></ul>
@@ -231,6 +248,7 @@
           </div>
         </div>
         <div class="card-detail" data-detail hidden>
+          <p class="card-deadnote" data-field="deadNote" hidden></p>
           <p class="card-caveat" data-field="caveat"></p>
           <p class="card-extra" data-field="extraNote"></p>
           <dl class="detail-grid">
