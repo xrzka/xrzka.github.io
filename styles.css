@@ -634,6 +634,9 @@ h1 {
 }
 .admin-dead-toggle:disabled { opacity: 0.6; cursor: default; }
 .admin-deadnew-toggle { border-color: var(--bad); color: var(--bad); }
+/* 展开卡片即见的快捷废站按钮：复用 card-admin-btn 基础样式，只换配色 */
+.card-admin-dead { border-color: var(--bad); color: var(--bad); }
+.card-admin-dead:disabled { opacity: 0.6; cursor: default; }
 
 
 

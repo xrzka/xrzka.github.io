@@ -321,6 +321,43 @@
           btn.textContent = "编辑这条";
         }
       });
+      // 最快的路径：展开卡片直接一键入/出废站，不用先点「编辑这条」
+      const quickDead = field("deadBtn");
+      quickDead.hidden = false;
+      quickDead.textContent = item.dead ? "移出废站" : "☠ 加入废站";
+      quickDead.addEventListener("click", async (event) => {
+        event.stopPropagation();
+        quickDead.disabled = true;
+        let result, text;
+        if (item.dead) {
+          if (!confirm(`把「${item.name}」移出废站？`)) {
+            quickDead.disabled = false;
+            return;
+          }
+          result = await adminFetch("/api/board/admin/override", {
+            item_id: item.id,
+            fields: {},
+            clear_fields: ["dead", "dead_note"],
+          });
+          text = "已移出废站";
+        } else {
+          // 一击入墓园，不弹窗；要写原因再用「编辑这条」补
+          result = await adminFetch("/api/board/admin/override", {
+            item_id: item.id,
+            fields: { dead: true },
+          });
+          text = "已加入废站，所有访客可见";
+        }
+        quickDead.disabled = false;
+        if (!result.ok) {
+          msg.textContent = result.error;
+          msg.className = "card-admin-msg bad";
+          return;
+        }
+        adminFlash = { id: item.id, text, kind: "ok" };
+        await refreshRemote();
+        adminFlash = null;
+      });
       if (adminFlash && adminFlash.id === item.id) {
         openEditor();
         msg.textContent = adminFlash.text;
