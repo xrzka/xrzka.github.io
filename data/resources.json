@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T04:07:25Z",
+  "generated_at": "2026-09-17T00:00:00Z",
   "note": "数据来自站点公开信息与社区分享，倍率与额度随时可能变化，以站点自身为准。",
   "items": [
     {
@@ -833,6 +833,40 @@
       "caveat_tag": "限 3 RPM",
       "caveat": "站方公告明确仅限个人学习用途，成本原因限制为 3 RPM。主站不能直接注册，必须通过独立注册站并使用定期公布的注册码；禁止多账号，站方会封禁傀儡账号。",
       "extra_note": "Base URL 为 https://laisiai.tw.cpolar.io/v1，公开支持 OpenAI /v1/chat/completions；Responses 兼容性较差。Codex 需降级至 0.80.0 以下并选带 :tool 后缀或“工具”标签的模型；只有这些模型支持真正的工具调用。逆向渠道不保证模型真实性与稳定性，部分上游可能波动。注册入口为 https://laisiaisignup.tw.cpolar.io，注册码由站方定期发布。"
+    },
+    {
+      "resource_id": "sharellm",
+      "resource_name": "ShareLLM",
+      "description": "免费额度按「5 小时窗口 + 周窗口」双计数：默认注册 120 次/5 小时、600 次/周；受邀注册 160 次/5 小时、900 次/周；充值或消费到 Starter、Plus、Pro 档位分别加至 500/2500、2000/10000、5000/25000，共享者还有额外加成。",
+      "site_url": "https://sharellm.net/sign-up?aff=WV9R",
+      "rank_position": 18,
+      "displayed_multiplier": null,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "CUSTOM",
+      "github_age_required": null,
+      "direct_connect": true,
+      "model_count": 0,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "free",
+      "recharge_ratio": "充值提档（Starter / Plus / Pro）",
+      "benefit_flags": [
+        "invite"
+      ],
+      "site_tags": [
+        "免费额度",
+        "5小时/周双窗口",
+        "受邀加成",
+        "充值提档"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {},
+      "models": []
     }
   ]
 }
