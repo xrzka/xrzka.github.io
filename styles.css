@@ -425,6 +425,8 @@ h1 {
   color: var(--text-muted);
   font-size: 12.5px;
   line-height: 1.55;
+  /* 保留 extra_note 里的换行（未测试候选池等靠 \n 分段），否则会被折叠成一坨 */
+  white-space: pre-line;
 }
 
 /* ---------- 保号注意事项 ---------- */
