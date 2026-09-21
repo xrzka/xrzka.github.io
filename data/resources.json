@@ -949,6 +949,112 @@
       "caveat_tag": null,
       "caveat": "注册走 rua.chat 自有 SSO 授权，页面未开放账号密码 / GitHub 直接注册；签到功能已开启。注册与签到赠送的具体额度以站内页面为准，本条未核实到确切数字。",
       "extra_note": "额度以站内自定义「rua 币」结算（兑换比例 100），官方不承诺可用性。模型库很全（约 200 个），上面仅列常用几款。生图相关：nai-* 系列走 /v1/images/generations 或 nai 原生 /v1/ai/generate-image；生图 400 多为提示词撞审核，改词或换参考图即可。"
+    },
+    {
+      "resource_id": "ttapi",
+      "resource_name": "TTAPI",
+      "description": "综合中转站，QQ 邮箱注册。倍率低：GPT 0.13x、CC(Claude) 0.35x；限时特惠 fable5 / gpt-5.6-sol / kimi-k3 等 0.1x。当前每日赠送 1 亿 token（全站共享额度），可用 gpt-5.6-sol、Claude Opus 5、DeepSeek、Grok 等。另上线无限套餐日卡 / 周卡（13.9 / 39.9），支持 5.6sol / fable5 / deepseek / grok，限时限购各 50 份，先到先得，可站内免费测试，活动约持续一个月。",
+      "site_url": "https://wqdsjhaoai.site/sign-up?aff=b2iI",
+      "rank_position": 20,
+      "displayed_multiplier": 0.1,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "USD",
+      "github_age_required": null,
+      "account_requirement": "QQ 邮箱注册",
+      "direct_connect": true,
+      "model_count": 6,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "welfare",
+      "recharge_ratio": "支持充值（无限套餐日卡 13.9 / 周卡 39.9）",
+      "benefit_flags": [
+        "invite"
+      ],
+      "feature_tags": [
+        "每日1亿token",
+        "低倍率",
+        "无限套餐"
+      ],
+      "site_tags": [
+        "公益站",
+        "QQ 邮箱注册",
+        "低倍率",
+        "每日1亿token全站共享",
+        "邀请奖励",
+        "无限套餐日卡/周卡"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {
+        "GPT": 0.13,
+        "CC(Claude)": 0.35,
+        "fable5/5.6sol/k3(限时)": 0.1
+      },
+      "models": [
+        {
+          "model_id": "gpt-5.6-sol",
+          "display_name": "gpt-5.6-sol"
+        },
+        {
+          "model_id": "claude-opus-5",
+          "display_name": "claude-opus-5"
+        },
+        {
+          "model_id": "fable5",
+          "display_name": "fable5"
+        },
+        {
+          "model_id": "kimi-k3",
+          "display_name": "kimi-k3"
+        },
+        {
+          "model_id": "deepseek",
+          "display_name": "DeepSeek"
+        },
+        {
+          "model_id": "grok",
+          "display_name": "Grok"
+        }
+      ],
+      "caveat_tag": "严禁小号",
+      "caveat": "邀请双方各得 10+10（冻结），受邀者需添加客服好友领 5 额度后解锁，新人一共可领 25 额度。严禁刷小号，违规会被封禁。",
+      "extra_note": "AFF 注册地址 https://wqdsjhaoai.site/sign-up?aff=b2iI。倍率：GPT 0.13x、CC(Claude) 0.35x，限时特惠 fable5 / gpt-5.6-sol / kimi-k3 等 0.1x。每日赠送 1 亿 token 为全站共享额度（非每账号独立）。无限套餐日卡 13.9 / 周卡 39.9，支持 5.6sol / fable5 / deepseek / grok，限时限购各 50 份，先到先得，模型可站内免费测试，活动约持续一个月。邀请另有「邀请 5 刀，添加客服领取」。以上倍率、额度与套餐为限时活动，随时可能调整，以站内为准。"
+    },
+    {
+      "resource_id": "l0veyou",
+      "resource_name": "l0veyou",
+      "description": "AI 智能助手中转站（站点标语「你的 AI 智能助手」）。站点为登录后使用的单页应用，注册赠送、签到、倍率与可用模型等信息暂未核实，以站内为准。",
+      "site_url": "https://l0veyou.com/login",
+      "rank_position": 21,
+      "displayed_multiplier": null,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "USD",
+      "github_age_required": null,
+      "account_requirement": null,
+      "direct_connect": true,
+      "model_count": 0,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "welfare",
+      "recharge_ratio": "—",
+      "benefit_flags": [],
+      "site_tags": [
+        "中转站",
+        "待补充信息"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {},
+      "models": [],
+      "extra_note": "登录地址 https://l0veyou.com/login，首页为需登录的单页应用，公开页拿不到倍率 / 模型 / 赠送额度等详情。倍率、可用模型、注册与签到额度、是否需代理等字段待补充，以站内实际为准。"
     }
   ]
 }
