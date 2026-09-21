@@ -1055,6 +1055,41 @@
       "group_ratios": {},
       "models": [],
       "extra_note": "登录地址 https://l0veyou.com/login，首页为需登录的单页应用，公开页拿不到倍率 / 模型 / 赠送额度等详情。倍率、可用模型、注册与签到额度、是否需代理等字段待补充，以站内实际为准。"
+    },
+    {
+      "resource_id": "untested-pool",
+      "resource_name": "未测试候选池",
+      "description": "记录遇到过、但还没实际注册/使用的中转站，先存个地址免得忘。以下站点均未实测，倍率、额度、可用性、是否需代理都未知，用前请自行验证。测试确认好用的会单独拆成正式卡片。",
+      "site_url": "",
+      "rank_position": 999,
+      "displayed_multiplier": null,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "USD",
+      "github_age_required": null,
+      "account_requirement": null,
+      "direct_connect": true,
+      "model_count": 0,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "welfare",
+      "recharge_ratio": "—",
+      "benefit_flags": [],
+      "site_tags": [
+        "未测试",
+        "候选池",
+        "待验证"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {},
+      "models": [],
+      "caveat_tag": "均未实测",
+      "caveat": "本条是「遇到过但没用过」的站点收集处，全部未经实测，倍率/额度/可用性均未知，注册使用前请自行评估风险。",
+      "extra_note": "【未测试候选池】以下站点仅做记录，尚未实际测试，用前自行验证：\n（暂无 —— 遇到新站把「站名 + 地址（+ 备注）」追加到这里；测试好用后再单独建正式卡片。）"
     }
   ]
 }
