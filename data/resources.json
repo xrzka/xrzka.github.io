@@ -1089,7 +1089,7 @@
       "models": [],
       "caveat_tag": "均未实测",
       "caveat": "本条是「遇到过但没用过」的站点收集处，全部未经实测，倍率/额度/可用性均未知，注册使用前请自行评估风险。",
-      "extra_note": "【未测试候选池】以下站点仅做记录，尚未实际测试，用前自行验证：\n1. TierFlow — https://tierflow.cn/"
+      "extra_note": "【未测试候选池】以下站点仅做记录，尚未实际测试，用前自行验证：\n\n1. TierFlow（清枢智汇）— https://tierflow.cn/\n   注意：不是普通中转站/API 转售，而是「模型调度引擎」。运营方北京清枢智汇科技，自研 8B 任务感知模型 BrainNet-8B，在 Agent 每一步动态选模型（GPT/Claude/Gemini/DeepSeek/Qwen/MiniMax/StepFun/智谱 等前沿模型里择优）+ 精炼上下文 + 整理记忆，主打「同等效果省成本」。接入方式：OpenAI SDK 把 baseURL 指到 https://tierflow.cn/v1，model 字段填 tierflow 或 tierflow_pro，由它自动调度。号称 PinchBench 完成率 91.6%、成本约 ¥2.04（对比 Opus 旗舰全程跑 ¥17.62）。支持邮箱免验证注册 + 密码/短信登录，单用户最多 50 个 token。联系 contact@tierflow.cn。适合 Agent 降本场景；倍率/计费细节待实测。\n\n2. Night CC — https://cc.nightsoil.cn/\n   基于 NewAPI 面板搭的「测试站点」，站点自称仅供个人学习 / 接口调试 / 兼容性验证，明确不承诺稳定性、持续性和数据保留（公告和 FAQ 反复强调「测试环境随时可能限流/暂停/下线」）。支持每日签到（checkin_enabled），额度用自定义符号「⚝」计价（quota_per_unit 50 万/单位）。登录方式多：邮箱验证、GitHub、Linux.do（需信任等级≥1）、Passkey。接口 OpenAI 兼容 /v1/chat/completions + Anthropic 兼容 /v1/messages（可在 Claude Code / Codex 里用）。三条线路：常规 cc.nightsoil.cn、阿里CDN加速 cc.nightb.cn、CF线路 cc.nightx.cn。充值入口 shop.nightsoil.cn，文档 ccrank.nightsoil.cn/docs，反馈 QQ 群 867168129。可用模型需登录后看（价格页未列，vendor 列表很全：OpenAI/Anthropic/Google/xAI/DeepSeek/Moonshot/智谱/阿里 等 60+ 供应商）。倍率、赠送额度、具体可用模型待实测。"
     }
   ]
 }
