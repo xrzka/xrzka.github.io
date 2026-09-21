@@ -52,6 +52,28 @@
     return Math.round(mins / 1440) + " 天前";
   };
 
+  /**
+   * 把纯文本里的 http(s) 链接渲染成可点击的 <a>，其余仍走 textContent。
+   * 只放行 http/https 协议，避免 javascript: 之类的伪协议注入。
+   */
+  function linkify(el, text) {
+    el.textContent = "";
+    const re = /https?:\/\/[^\s，。、）)】」""']+/g;
+    let last = 0;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+      const a = document.createElement("a");
+      a.href = m[0];
+      a.textContent = m[0];
+      a.target = "_blank";
+      a.rel = "noreferrer noopener";
+      el.appendChild(a);
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+  }
+
   const CATEGORY_LABEL = { welfare: "公益", paid: "付费", free: "免费" };
   const BENEFIT_LABEL = { register: "注册赠送", invite: "邀请奖励", checkin: "每日签到", recharge: "充值返利" };
   /* ---------- 数据归一化 ---------- */
@@ -251,11 +273,12 @@
       }
     }
 
-    // 站点补充说明：中性信息，样式比禁忌弱
+    // 站点补充说明：中性信息，样式比禁忌弱。把其中的 http(s) 链接渲染成可点击的 <a>，
+    // 其余文本仍走 textContent，避免 HTML 注入。
     const extraEl = node.querySelector("[data-field='extraNote']");
     if (extraEl) {
       if (item.extraNote) {
-        extraEl.textContent = item.extraNote;
+        linkify(extraEl, item.extraNote);
       } else {
         extraEl.remove();
       }
@@ -404,6 +427,9 @@
 
     empty.hidden = list.length > 0;
     count.textContent = list.length ? `显示 ${list.length} / ${state.items.length} 个站点` : "";
+
+    // 列表条数变化会改变页面高度，重算悬浮按钮的显隐
+    if (typeof updateScrollDock === "function") updateScrollDock();
   }
 
   function rebuild() {
@@ -906,6 +932,48 @@
     if (form) form.addEventListener("submit", (e) => e.preventDefault());
   }
 
+  /** 回到顶部 / 到底部悬浮按钮。页面不够长时整体隐藏。 */
+  let updateScrollDock = null;
+  function bindScrollDock() {
+    const dock = $("[data-scroll-dock]");
+    const upBtn = $("[data-scroll-top]");
+    const downBtn = $("[data-scroll-bottom]");
+    if (!dock || !upBtn || !downBtn) return;
+
+    const scrollTo = (top) => window.scrollTo({ top, behavior: "smooth" });
+    upBtn.addEventListener("click", () => scrollTo(0));
+    downBtn.addEventListener("click", () => scrollTo(document.documentElement.scrollHeight));
+
+    // 按滚动位置决定显示哪个方向，两端各留 120px 余量避免抖动
+    const update = () => {
+      const doc = document.documentElement;
+      const scrolled = window.scrollY;
+      const max = doc.scrollHeight - window.innerHeight;
+      if (max < 240) {
+        dock.hidden = true;
+        return;
+      }
+      dock.hidden = false;
+      upBtn.hidden = scrolled < 120;
+      downBtn.hidden = scrolled > max - 120;
+    };
+
+    // 滚动事件用 rAF 节流，避免每帧重复计算
+    let queued = false;
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        update();
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    update();
+    updateScrollDock = update;
+  }
+
   function bindTheme() {
     const btn = $("[data-theme-toggle]");
     if (!btn) return;
@@ -927,6 +995,7 @@
   async function init() {
     bindTheme();
     bindControls();
+    bindScrollDock();
     bindAdmin();
     try {
       const [res, overrideData, itemData] = await Promise.all([
