@@ -27,24 +27,67 @@
   let adminToken = "";
   let adminFlash = null;
 
-  /* ---------- 点赞（本机 localStorage，按站点 id 记次数） ---------- */
-  const LIKES_KEY = "board_likes_v1";
-  const likes = (() => {
+  /* ---------- 点赞（全站共享计数 + 本机 localStorage 防重复） ----------
+   * 计数存在共用 Cloudflare D1（/api/likes?site=board 读，/api/likes/toggle 写），
+   * 所有访客一起累加，是真正的热度榜。localStorage 只记「本机赞过哪些」，
+   * 保证每台设备对同一条最多净 +1，取消再 -1。后端离线时自动退回纯本机模式。 */
+  const LIKES_KEY = "board_likes_v1";      // 本机赞过的 id：{ id: 1 }
+  const myLikes = (() => {
     try {
       const o = JSON.parse(localStorage.getItem(LIKES_KEY) || "{}");
       return o && typeof o === "object" ? o : {};
     } catch { return {}; }
   })();
-  const likeCountOf = (id) => (typeof likes[id] === "number" && likes[id] > 0 ? likes[id] : 0);
-  const saveLikes = () => {
-    try { localStorage.setItem(LIKES_KEY, JSON.stringify(likes)); } catch { /* 隐私模式忽略 */ }
+  const likeTotals = {};                    // 全站计数：{ id: n } —— 从后端拉取
+  const likeCountOf = (id) => (typeof likeTotals[id] === "number" && likeTotals[id] > 0 ? likeTotals[id] : 0);
+  const likedByMe = (id) => myLikes[id] === 1;
+  const saveMyLikes = () => {
+    try { localStorage.setItem(LIKES_KEY, JSON.stringify(myLikes)); } catch { /* 隐私模式忽略 */ }
   };
-  const toggleLike = (id) => {
-    // 未赞 → 赞（1）；已赞 → 取消（删除）。点赞后卡片置顶。
-    if (likeCountOf(id) > 0) delete likes[id];
-    else likes[id] = 1;
-    saveLikes();
-  };
+
+  async function loadLikes() {
+    if (!API_CANDIDATES.length) return;
+    const bases = apiBase ? [apiBase, ...API_CANDIDATES.filter((b) => b !== apiBase)] : API_CANDIDATES;
+    for (const base of bases) {
+      try {
+        const res = await fetch(base + "/api/likes?site=board", { cache: "no-store" });
+        if (!res.ok) continue;
+        const data = await res.json();
+        apiBase = base;
+        Object.assign(likeTotals, data.likes || {});
+        return;
+      } catch { /* 换下一个入口 */ }
+    }
+  }
+
+  // 点赞/取消：先本地翻转并立刻重渲染（乐观更新），再打后端。失败则回滚。
+  async function toggleLike(id) {
+    const wasLiked = likedByMe(id);
+    const op = wasLiked ? "unlike" : "like";
+    // 乐观更新本机状态与计数
+    if (wasLiked) { delete myLikes[id]; likeTotals[id] = Math.max((likeTotals[id] || 0) - 1, 0); }
+    else { myLikes[id] = 1; likeTotals[id] = (likeTotals[id] || 0) + 1; }
+    saveMyLikes();
+    renderBoard();
+
+    if (!API_CANDIDATES.length) return; // 没配后端就只本机
+    const bases = apiBase ? [apiBase, ...API_CANDIDATES.filter((b) => b !== apiBase)] : API_CANDIDATES;
+    for (const base of bases) {
+      try {
+        const res = await fetch(base + "/api/likes/toggle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ site: "board", id, op }),
+        });
+        if (!res.ok) continue;
+        const data = await res.json();
+        apiBase = base;
+        if (typeof data.n === "number") { likeTotals[id] = data.n; renderBoard(); }
+        return;
+      } catch { /* 换下一个入口 */ }
+    }
+    // 全部失败：本机状态保留（下次进来仍显示已赞），计数以后端为准，不强行回滚。
+  }
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -253,16 +296,16 @@
     if (likeBtn) {
       const syncLike = () => {
         const n = likeCountOf(item.id);
-        likeBtn.setAttribute("aria-pressed", n > 0 ? "true" : "false");
-        likeBtn.classList.toggle("liked", n > 0);
+        const mine = likedByMe(item.id);
+        likeBtn.setAttribute("aria-pressed", mine ? "true" : "false");
+        likeBtn.classList.toggle("liked", mine);
         if (likeCountEl) likeCountEl.textContent = String(n);
-        likeBtn.title = n > 0 ? "已点赞（置顶）· 点击取消" : "点赞置顶";
+        likeBtn.title = mine ? "已点赞 · 点击取消" : "点赞（全站累计）";
       };
       syncLike();
       likeBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         toggleLike(item.id);
-        renderBoard();
       });
     }
 
@@ -1127,6 +1170,8 @@
       state.customItems = Array.isArray(itemData.items) ? itemData.items : [];
       state.generatedAt = payload.generated_at || null;
       rebuild();
+      // 点赞数从共用后端拉取（可能较慢/超时），到手后再重排一次。
+      loadLikes().then(() => renderBoard());
     } catch (err) {
       const board = $("[data-board]");
       board.textContent = "";
