@@ -27,6 +27,25 @@
   let adminToken = "";
   let adminFlash = null;
 
+  /* ---------- 点赞（本机 localStorage，按站点 id 记次数） ---------- */
+  const LIKES_KEY = "board_likes_v1";
+  const likes = (() => {
+    try {
+      const o = JSON.parse(localStorage.getItem(LIKES_KEY) || "{}");
+      return o && typeof o === "object" ? o : {};
+    } catch { return {}; }
+  })();
+  const likeCountOf = (id) => (typeof likes[id] === "number" && likes[id] > 0 ? likes[id] : 0);
+  const saveLikes = () => {
+    try { localStorage.setItem(LIKES_KEY, JSON.stringify(likes)); } catch { /* 隐私模式忽略 */ }
+  };
+  const toggleLike = (id) => {
+    // 未赞 → 赞（1）；已赞 → 取消（删除）。点赞后卡片置顶。
+    if (likeCountOf(id) > 0) delete likes[id];
+    else likes[id] = 1;
+    saveLikes();
+  };
+
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
@@ -173,8 +192,15 @@
     // 勾了「仅看废站 / 仅看未测试」时直接按所选排序展示对应集合。
     if (f.dead || f.untested) return list.sort(cmp);
     // 默认视图分三层沉底：正常站点在上，未测试候选池居中，废站（墓园）垫底。
+    // 同层内：点赞过的卡片优先（点赞多的排前面），其余按所选排序（默认综合排名=加入顺序）。
     const tier = (i) => (i.dead ? 2 : i.untested ? 1 : 0);
-    return list.sort((a, b) => tier(a) - tier(b) || cmp(a, b));
+    return list.sort((a, b) => {
+      const t = tier(a) - tier(b);
+      if (t) return t;
+      const la = likeCountOf(a.id), lb = likeCountOf(b.id);
+      if (lb !== la) return lb - la;
+      return cmp(a, b);
+    });
   }
 
   /* ---------- 渲染 ---------- */
@@ -220,6 +246,25 @@
     field("rank").textContent = item.rank;
     field("name").textContent = item.name;
     field("description").textContent = item.description;
+
+    // 点赞按钮：本机记录，点赞后卡片置顶。阻止冒泡以免触发卡片展开。
+    const likeBtn = field("likeBtn");
+    const likeCountEl = field("likeCount");
+    if (likeBtn) {
+      const syncLike = () => {
+        const n = likeCountOf(item.id);
+        likeBtn.setAttribute("aria-pressed", n > 0 ? "true" : "false");
+        likeBtn.classList.toggle("liked", n > 0);
+        if (likeCountEl) likeCountEl.textContent = String(n);
+        likeBtn.title = n > 0 ? "已点赞（置顶）· 点击取消" : "点赞置顶";
+      };
+      syncLike();
+      likeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleLike(item.id);
+        renderBoard();
+      });
+    }
 
     // 无法直连的站点单独标出来，这是使用前必须知道的信息
     const connEl = field("status");

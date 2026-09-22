@@ -9,9 +9,9 @@
       content="中转站榜单：汇总倍率、充值比例、可用模型、接口测试状态与社区评分，一页对比。"
     />
     <title>中转站榜单 · 倍率与可用性对比</title>
-    <script src="config.js?v=20260920c"></script>
-    <link rel="stylesheet" href="styles.css?v=20260920c" />
-    <script src="app.js?v=20260920c" defer></script>
+    <script src="config.js?v=20260922a"></script>
+    <link rel="stylesheet" href="styles.css?v=20260922a" />
+    <script src="app.js?v=20260922a" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#board">跳到榜单内容</a>
@@ -242,6 +242,9 @@
               <span class="category-pill" data-field="category"></span>
               <span class="untested-pill" data-field="untestedPill" hidden>🧪 未测试</span>
               <span class="dead-pill" data-field="deadPill" hidden>☠ 已废</span>
+              <button type="button" class="like-btn" data-field="likeBtn" aria-pressed="false" title="点赞置顶">
+                <span class="like-ico" aria-hidden="true">♥</span><span class="like-count" data-field="likeCount">0</span>
+              </button>
             </div>
             <p class="card-desc" data-field="description"></p>
             <ul class="tag-list" data-field="tags"></ul>
