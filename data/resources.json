@@ -1057,6 +1057,50 @@
       "extra_note": "登录地址 https://l0veyou.com/login，首页为需登录的单页应用，公开页拿不到倍率 / 模型 / 赠送额度等详情。倍率、可用模型、注册与签到额度、是否需代理等字段待补充，以站内实际为准。"
     },
     {
+      "resource_id": "modeloc",
+      "resource_name": "MODELOC",
+      "description": "不是普通中转站，而是「模型可信度 + 算力平台」——正好是给中转站兜底的工具站。四大功能：① 模型检测（13 项独立探针，验证中转站输出是否被掺水/降智、与官方原版是否一致，游客每 24h 免费 1 次）；② 模型榜单（按模型看各中转站一致性评分 Top10，Sybil 抗性聚合）；③ 算力池（分享闲置额度赚算力，用统一网关调用别人分享的模型）；④ 市场（余额⇄算力按成交价浮动兑换）。已收录约 1.9k 个中转站。用它可以先查一个中转站是不是真原版再决定用不用。",
+      "site_url": "https://modeloc.com/i/U5DK4GSD",
+      "rank_position": 0,
+      "displayed_multiplier": null,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "CNY",
+      "github_age_required": null,
+      "account_requirement": "游客可免费检测（每24h 1次），登录后更宽松",
+      "direct_connect": true,
+      "model_count": 0,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "free",
+      "recharge_ratio": "算力市场（CNY ⇄ 算力，随成交浮动）",
+      "benefit_flags": [
+        "invite"
+      ],
+      "feature_tags": [
+        "中转站掺水检测",
+        "一致性榜单",
+        "算力池共享"
+      ],
+      "site_tags": [
+        "工具站",
+        "中转站检测",
+        "模型一致性榜单",
+        "算力池/市场",
+        "游客免费检测"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {},
+      "models": [],
+      "caveat_tag": "非中转站·是检测工具",
+      "caveat": "MODELOC 本身不是拿来调用模型薅额度的中转站，而是检测「别的中转站有没有掺水/降智」的工具 + 算力共享平台。榜单高排名不代表安全认证，站方明确「高排名不代表安全」。",
+      "extra_note": "邀请注册 https://modeloc.com/i/U5DK4GSD。核心用法：把你在用的中转站丢进「模型检测」，13 项探针比对它的输出和官方原版是否一致，判断有没有被掺水/换成小模型。榜单页可直接看 Opus 4.8 / GPT 5.6 / Sonnet 5 等模型下各中转站的一致性评分排名（当前榜上如 new.lingyicai.xyz 94、Unlimited AI 88、api.justwoker.icu 83 等，仅供参考、会变）。算力池则是分享闲置额度换算力、用统一网关调别人分享的模型。开放平台/文档见站内。这是给榜单兜底的配套工具，建议注册后先拿它体检一下你手上的公益站。"
+    },
+    {
       "resource_id": "kiosapi",
       "resource_name": "KiosAPI",
       "description": "NewAPI 面板的综合网关（印尼团队运营，界面英文/印尼语）。有免费组 Free：100% 免费但需先做 Telegram 机器人验证并加入 TG 频道（因刷小号滥用才加的门槛）。免费组模型经常更新，近期含 claude-opus-5 / claude-sonnet-5（限时免费）、deepseek-v4.1-flash、gpt-oss-20b、glm-5.3-flash、qwen3.8-27b、mimo-v2.5 等一堆开源/小模型。付费分组倍率极低：Claude(Kiro) 0.05x、Codex-Plus 0.02x / Codex-Pro 0.04x、Grok 0.03x、Gemini 0.05x、DeepSeek 0.2x、国产模型 0.2x。",
