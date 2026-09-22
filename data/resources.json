@@ -1057,6 +1057,73 @@
       "extra_note": "登录地址 https://l0veyou.com/login，首页为需登录的单页应用，公开页拿不到倍率 / 模型 / 赠送额度等详情。倍率、可用模型、注册与签到额度、是否需代理等字段待补充，以站内实际为准。"
     },
     {
+      "resource_id": "kiosapi",
+      "resource_name": "KiosAPI",
+      "description": "NewAPI 面板的综合网关（印尼团队运营，界面英文/印尼语）。有免费组 Free：100% 免费但需先做 Telegram 机器人验证并加入 TG 频道（因刷小号滥用才加的门槛）。免费组模型经常更新，近期含 claude-opus-5 / claude-sonnet-5（限时免费）、deepseek-v4.1-flash、gpt-oss-20b、glm-5.3-flash、qwen3.8-27b、mimo-v2.5 等一堆开源/小模型。付费分组倍率极低：Claude(Kiro) 0.05x、Codex-Plus 0.02x / Codex-Pro 0.04x、Grok 0.03x、Gemini 0.05x、DeepSeek 0.2x、国产模型 0.2x。",
+      "site_url": "https://kiosapi.com/sign-up?aff=EcFo",
+      "rank_position": 22,
+      "displayed_multiplier": 0.02,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "USD",
+      "github_age_required": null,
+      "account_requirement": "邮箱验证注册 / GitHub / Google / Passkey；免费组需额外 Telegram 验证",
+      "direct_connect": true,
+      "model_count": 60,
+      "model_group_count": 11,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "welfare",
+      "recharge_ratio": "支持充值（USD 计价，Stripe）",
+      "benefit_flags": [
+        "register"
+      ],
+      "feature_tags": [
+        "免费组需绑TG",
+        "低倍率",
+        "模型齐全"
+      ],
+      "site_tags": [
+        "免费组绑Telegram",
+        "低倍率",
+        "邮箱/GitHub/Google 注册",
+        "Claude/GPT/Grok/国产全",
+        "支持生图"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {
+        "Codex-Plus": 0.02,
+        "Grok": 0.03,
+        "Codex-Pro": 0.04,
+        "Claude-Kiro": 0.05,
+        "Gemini": 0.05,
+        "DeepSeek": 0.2,
+        "GLM": 0.2,
+        "China-Models": 0.2,
+        "Free": 0
+      },
+      "models": [
+        { "model_id": "claude-opus-5", "display_name": "claude-opus-5（免费组限时）" },
+        { "model_id": "claude-sonnet-5", "display_name": "claude-sonnet-5（免费组限时）" },
+        { "model_id": "claude-opus-4-8", "display_name": "claude-opus-4-8（Kiro 0.05x）" },
+        { "model_id": "gpt-6-astra", "display_name": "gpt-6-astra（Codex 组）" },
+        { "model_id": "gpt-5.6-sol", "display_name": "gpt-5.6-sol（Codex 组）" },
+        { "model_id": "grok-4.7", "display_name": "grok-4.7 / 4.6 / 4.5（Grok 组 0.03x）" },
+        { "model_id": "deepseek-v4-pro", "display_name": "deepseek-v4-pro / v4.1-flash（DeepSeek 组 0.2x）" },
+        { "model_id": "glm-5.3", "display_name": "glm-5.3 / 5.2（GLM 组 0.2x）" },
+        { "model_id": "kimi-k3", "display_name": "kimi-k3 / k2.7（国产组 0.2x）" },
+        { "model_id": "gemini-3.8-flash", "display_name": "gemini-3.8/3.7/3.6-flash（Gemini 组 0.05x）" },
+        { "model_id": "gpt-image-2", "display_name": "gpt-image-2 / 2.5、grok-imagine（生图组）" },
+        { "model_id": "free-group", "display_name": "免费组：gpt-oss-20b、qwen3.8-27b、glm-5.3-flash、mimo-v2.5、step-3.7-flash 等（需绑 TG）" }
+      ],
+      "caveat_tag": "免费组需绑TG",
+      "caveat": "免费组（Free）现在必须先通过 Telegram 机器人验证 + 加入官方 TG 频道才能用（站方说是因为有人刷多号滥用）。免费组本身 100% 免费，只是多一道 TG 验证；免费组稳定性站方声明不保证（Request stability is not guaranteed）。",
+      "extra_note": "AFF 注册 https://kiosapi.com/sign-up?aff=EcFo。接口多协议兼容：OpenAI /v1/chat/completions、Anthropic /v1/messages、Gemini、生图 /v1/images/generations。登录方式：邮箱验证注册、GitHub、Google、Passkey（有 Turnstile 人机验证）；无每日签到（checkin 关闭）。免费组模型经常变，务必以定价页 https://kiosapi.com/pricing 当前列表为准。文档 https://kiosapi.mintlify.app，Discord https://discord.gg/KCAGkMaHM3，Telegram https://t.me/kiosapi_official。付费额度按 USD 计价，Stripe 充值。分组倍率（group_ratio）：Free 0、Codex-Plus 0.02、Grok 0.03、Codex-Pro 0.04、Claude-Kiro/Gemini 0.05、DeepSeek/GLM/国产 0.2、生图/default 1。以上为抓取快照，倍率与模型随时可能调整，以站内为准。"
+    },
+    {
       "resource_id": "untested-pool",
       "resource_name": "未测试候选池",
       "description": "记录遇到过、但还没实际注册/使用的中转站，先存个地址免得忘。以下站点均未实测，倍率、额度、可用性、是否需代理都未知，用前请自行验证。测试确认好用的会单独拆成正式卡片。",
