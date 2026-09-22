@@ -646,6 +646,35 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+/* ---------- 可点击的概览统计卡 ---------- */
+.summary-card.is-clickable {
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s, background 0.15s;
+}
+.summary-card.is-clickable:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.summary-card.is-clickable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- 未测试候选池标记 ---------- */
+.untested-pill {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: color-mix(in srgb, #d97706 16%, transparent);
+  color: #b26a05;
+  white-space: nowrap;
+}
+[data-theme="dark"] .untested-pill { color: #e0a54a; }
+.board-card.untested { border-left: 3px solid #d97706; }
+.board-card.untested:hover { border-color: #d97706; }
+.board-card.untested[aria-expanded="true"] { border-color: #d97706; }
+
 /* ---------- 回到顶部 / 到底部 ---------- */
 .scroll-dock {
   position: fixed;

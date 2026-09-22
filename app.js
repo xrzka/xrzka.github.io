@@ -20,7 +20,7 @@
     customItems: [],
     overrides: {},
     generatedAt: null,
-    filters: { q: "", sort: "rank", category: "all", checkin: false, direct: false, dead: false },
+    filters: { q: "", sort: "rank", category: "all", checkin: false, direct: false, dead: false, untested: false },
   };
 
   let apiBase = "";
@@ -119,6 +119,7 @@
       caveat: source.caveat || "",
       caveatTag: source.caveat_tag || "",
       dead: source.dead === true,
+      untested: source.untested === true,
       deadNote: source.dead_note || "",
       extraNote: source.extra_note || "",
       benefits: Array.isArray(source.benefit_flags) ? source.benefit_flags : [],
@@ -165,12 +166,15 @@
       if (f.checkin && !item.benefits.includes("checkin")) return false;
       if (f.direct && !item.directConnect) return false;
       if (f.dead && !item.dead) return false;
+      if (f.untested && !item.untested) return false;
       return true;
     });
     const cmp = SORTERS[f.sort] || SORTERS.rank;
-    // 废站统一沉底当「墓园」，正常站点的相对顺序不受影响；勾了「仅看废站」就直接按所选排序。
-    if (f.dead) return list.sort(cmp);
-    return list.sort((a, b) => (a.dead ? 1 : 0) - (b.dead ? 1 : 0) || cmp(a, b));
+    // 勾了「仅看废站 / 仅看未测试」时直接按所选排序展示对应集合。
+    if (f.dead || f.untested) return list.sort(cmp);
+    // 默认视图分三层沉底：正常站点在上，未测试候选池居中，废站（墓园）垫底。
+    const tier = (i) => (i.dead ? 2 : i.untested ? 1 : 0);
+    return list.sort((a, b) => tier(a) - tier(b) || cmp(a, b));
   }
 
   /* ---------- 渲染 ---------- */
@@ -183,19 +187,24 @@
     // 只合计美元额度。站点的赠送额度单位并不统一（有 $ / ¥ / Gems / 积分），
     // 早先这里把所有 registerBonus 不分单位地相加再前缀一个 "$"，
     // 混进一个 ¥ 站就会算出「$583.76」这种既错单位又带小数的数字。
-    const usd = alive.filter((i) => i.currency === "$" && typeof i.registerBonus === "number");
+    // 「当前收录」「额度合计」「支持签到」都不把未测试候选池算进正常站点。
+    const normal = alive.filter((i) => !i.untested);
+    const normalTotal = normal.length;
+    const untestedCount = alive.filter((i) => i.untested).length;
+    const usd = normal.filter((i) => i.currency === "$" && typeof i.registerBonus === "number");
     const totalBonus = usd.reduce((s, i) => s + i.registerBonus, 0);
-    const withCheckin = alive.filter((i) => i.benefits.includes("checkin")).length;
+    const withCheckin = normal.filter((i) => i.benefits.includes("checkin")).length;
 
     const set = (key, value) => {
       const el = $(`[data-stat="${key}"]`);
       if (el) el.textContent = value;
     };
-    set("total", String(total).padStart(2, "0"));
+    set("total", String(normalTotal).padStart(2, "0"));
     // 非整数才保留两位小数，避免 "$575.00" 这种啰嗦写法
     set("bonus", totalBonus ? "$" + (Number.isInteger(totalBonus) ? totalBonus : totalBonus.toFixed(2)) : "—");
-    set("checkin", total ? `${withCheckin}/${total}` : "—");
+    set("checkin", normalTotal ? `${withCheckin}/${normalTotal}` : "—");
     set("dead", String(deadCount).padStart(2, "0"));
+    set("untested", String(untestedCount).padStart(2, "0"));
     set("updated", relTime(state.generatedAt));
 
     const footer = $("[data-footer-updated]");
@@ -228,6 +237,13 @@
     if (item.dead) {
       node.classList.add("dead");
       field("deadPill").hidden = false;
+    }
+
+    // 未测试候选池：左边框橙色 +「未测试」徽标，和正常/废站一眼区分
+    if (item.untested) {
+      node.classList.add("untested");
+      const pill = field("untestedPill");
+      if (pill) pill.hidden = false;
     }
 
     const tagList = field("tags");
@@ -932,6 +948,61 @@
     if (form) form.addEventListener("submit", (e) => e.preventDefault());
   }
 
+  /** 把当前 filters 状态同步回筛选表单的控件（点顶部统计后让勾选框跟着变）。 */
+  function syncControls() {
+    $$("[data-filter]").forEach((el) => {
+      const key = el.dataset.filter;
+      if (el.type === "checkbox") el.checked = !!state.filters[key];
+      else el.value = state.filters[key];
+    });
+  }
+
+  /**
+   * 顶部概览数字可点：点一下套用对应筛选，再点一下取消。
+   * 「仅看废站 / 仅看未测试」互斥（同时开会必然空结果）。
+   */
+  function bindSummaryStats() {
+    const board = $("[data-board]");
+    const scrollToBoard = () => {
+      if (board) board.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    const toggle = (key) => {
+      const on = !state.filters[key];
+      state.filters.dead = false;
+      state.filters.untested = false;
+      state.filters[key] = on;
+      syncControls();
+      renderBoard();
+      if (on) scrollToBoard();
+    };
+    const bind = (stat, fn) => {
+      const card = $(`[data-stat="${stat}"]`);
+      const clickable = card && card.closest(".summary-card");
+      if (!clickable) return;
+      clickable.classList.add("is-clickable");
+      clickable.setAttribute("role", "button");
+      clickable.setAttribute("tabindex", "0");
+      const run = () => fn();
+      clickable.addEventListener("click", run);
+      clickable.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          run();
+        }
+      });
+    };
+    // 「当前收录」= 清空所有筛选回到默认；签到/废站/未测试 = 套用对应筛选
+    bind("total", () => {
+      state.filters = { q: "", sort: state.filters.sort, category: "all", checkin: false, direct: false, dead: false, untested: false };
+      syncControls();
+      renderBoard();
+      scrollToBoard();
+    });
+    bind("checkin", () => toggle("checkin"));
+    bind("dead", () => toggle("dead"));
+    bind("untested", () => toggle("untested"));
+  }
+
   /** 回到顶部 / 到底部悬浮按钮。页面不够长时整体隐藏。 */
   let updateScrollDock = null;
   function bindScrollDock() {
@@ -995,6 +1066,7 @@
   async function init() {
     bindTheme();
     bindControls();
+    bindSummaryStats();
     bindScrollDock();
     bindAdmin();
     try {

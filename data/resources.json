@@ -1126,6 +1126,7 @@
     {
       "resource_id": "untested-pool",
       "resource_name": "未测试候选池",
+      "untested": true,
       "description": "记录遇到过、但还没实际注册/使用的中转站，先存个地址免得忘。以下站点均未实测，倍率、额度、可用性、是否需代理都未知，用前请自行验证。测试确认好用的会单独拆成正式卡片。",
       "site_url": "",
       "rank_position": 999,
