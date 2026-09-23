@@ -1204,6 +1204,84 @@
       "extra_note": "AFF 注册 https://kiosapi.com/sign-up?aff=EcFo。接口多协议兼容：OpenAI /v1/chat/completions、Anthropic /v1/messages、Gemini、生图 /v1/images/generations。登录方式：邮箱验证注册、GitHub、Google、Passkey（有 Turnstile 人机验证）；无每日签到（checkin 关闭）。免费组模型经常变，务必以定价页 https://kiosapi.com/pricing 当前列表为准。文档 https://kiosapi.mintlify.app，Discord https://discord.gg/KCAGkMaHM3，Telegram https://t.me/kiosapi_official。付费额度按 USD 计价，Stripe 充值。分组倍率（group_ratio）：Free 0、Codex-Plus 0.02、Grok 0.03、Codex-Pro 0.04、Claude-Kiro/Gemini 0.05、DeepSeek/GLM/国产 0.2、生图/default 1。以上为抓取快照，倍率与模型随时可能调整，以站内为准。"
     },
     {
+      "resource_id": "mcp-babm",
+      "resource_name": "万象网络安全中转站",
+      "description": "公益模型站，主打 Qwen（千问）全系列旗舰模型多模态支持。Qwen 多账号池高可用，OpenAI 兼容 API 网关，智能负载均衡稳定可用。",
+      "site_url": "https://mcp.babm.cn/register?invite=SQGDCYT5",
+      "rank_position": 23,
+      "displayed_multiplier": null,
+      "register_bonus": null,
+      "checkin_bonus": null,
+      "bonus_currency": "USD",
+      "github_age_required": null,
+      "account_requirement": null,
+      "direct_connect": true,
+      "model_count": 10,
+      "model_group_count": null,
+      "latest_duration_ms": null,
+      "board_votes": {
+        "rating": null
+      },
+      "current_status": "unknown",
+      "consumer_category": "welfare",
+      "recharge_ratio": "—",
+      "benefit_flags": [],
+      "site_tags": [
+        "公益站",
+        "千问全系列",
+        "多模态",
+        "OpenAI 兼容",
+        "多账号池"
+      ],
+      "last_tested_at": null,
+      "group_ratios": {},
+      "models": [
+        {
+          "model_id": "qwen-max",
+          "display_name": "qwen-max"
+        },
+        {
+          "model_id": "qwen-plus",
+          "display_name": "qwen-plus"
+        },
+        {
+          "model_id": "qwen-turbo",
+          "display_name": "qwen-turbo"
+        },
+        {
+          "model_id": "qwen-vl-max",
+          "display_name": "qwen-vl-max (多模态)"
+        },
+        {
+          "model_id": "qwen-vl-plus",
+          "display_name": "qwen-vl-plus (多模态)"
+        },
+        {
+          "model_id": "qwen3-max",
+          "display_name": "qwen3-max"
+        },
+        {
+          "model_id": "qwen3-coder-plus",
+          "display_name": "qwen3-coder-plus"
+        },
+        {
+          "model_id": "qwen3-vl-plus",
+          "display_name": "qwen3-vl-plus (多模态)"
+        },
+        {
+          "model_id": "qwen-omni-turbo",
+          "display_name": "qwen-omni-turbo (全模态)"
+        },
+        {
+          "model_id": "qwen-long",
+          "display_name": "qwen-long"
+        }
+      ],
+      "caveat_tag": "公益共享",
+      "caveat": "公益站，额度与倍率随时可能调整，请以站内实际显示为准。",
+      "extra_note": "AFF 注册链接 https://mcp.babm.cn/register?invite=SQGDCYT5。主打千问（Qwen）全系列旗舰模型，支持多模态（视觉 / 全模态）调用。多账号池负载均衡，OpenAI 兼容 API，接口形式 /v1/chat/completions 即可。"
+    },
+    {
       "resource_id": "untested-pool",
       "resource_name": "未测试候选池",
       "untested": true,
