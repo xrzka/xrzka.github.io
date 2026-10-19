@@ -699,6 +699,40 @@ h1 {
   white-space: nowrap;
 }
 [data-theme="dark"] .untested-pill { color: #e0a54a; }
+
+/* ---------- 一键隐藏 ---------- */
+/* 隐藏卡只有管理员看得到，用紫色系与废站（红）/未测试（橙）区分开 */
+.hidden-pill {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: color-mix(in srgb, #7c3aed 16%, transparent);
+  color: #6d28d9;
+  white-space: nowrap;
+}
+[data-theme="dark"] .hidden-pill { color: #c4b5fd; }
+.board-card.is-hidden { border-left: 3px solid #7c3aed; opacity: 0.72; }
+.board-card.is-hidden:hover { border-color: #7c3aed; }
+.board-card.is-hidden[aria-expanded="true"] { border-color: #7c3aed; }
+.card-admin-hide { border-color: #7c3aed; color: #7c3aed; }
+.card-admin-hide:disabled { opacity: 0.6; cursor: default; }
+.admin-hide-toggle { border-color: #7c3aed; color: #7c3aed; }
+/* 标题行上的快捷隐藏按钮：只有管理员登录后才出现，一点即隐藏/恢复 */
+.hide-quick {
+  padding: 2px 8px;
+  border: 1px solid #7c3aed;
+  border-radius: 999px;
+  background: transparent;
+  color: #7c3aed;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.hide-quick[hidden] { display: none; }
+.hide-quick:hover { background: color-mix(in srgb, #7c3aed 12%, transparent); }
+.hide-quick:disabled { opacity: 0.6; cursor: default; }
 .board-card.untested { border-left: 3px solid #d97706; }
 .board-card.untested:hover { border-color: #d97706; }
 .board-card.untested[aria-expanded="true"] { border-color: #d97706; }

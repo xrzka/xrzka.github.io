@@ -9,9 +9,9 @@
       content="中转站榜单：汇总倍率、充值比例、可用模型、接口测试状态与社区评分，一页对比。"
     />
     <title>中转站榜单 · 倍率与可用性对比</title>
-    <script src="config.js?v=20260923b"></script>
-    <link rel="stylesheet" href="styles.css?v=20260923b" />
-    <script src="app.js?v=20260923b" defer></script>
+    <script src="config.js?v=20261019a"></script>
+    <link rel="stylesheet" href="styles.css?v=20261019a" />
+    <script src="app.js?v=20261019a" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#board">跳到榜单内容</a>
@@ -100,6 +100,13 @@
           </button>
           <span class="admin-new-msg" data-admin-deleted-msg aria-live="polite"></span>
           <div class="admin-deleted-list" data-admin-deleted-list hidden></div>
+        </div>
+        <div class="admin-deleted" data-admin-hidden hidden>
+          <button type="button" class="admin-new-toggle" data-admin-hidden-toggle>
+            已隐藏卡片（0）
+          </button>
+          <span class="admin-new-msg" data-admin-hidden-msg aria-live="polite"></span>
+          <div class="admin-deleted-list" data-admin-hidden-list hidden></div>
         </div>
       </section>
 
@@ -242,6 +249,9 @@
               <span class="category-pill" data-field="category"></span>
               <span class="untested-pill" data-field="untestedPill" hidden>🧪 未测试</span>
               <span class="dead-pill" data-field="deadPill" hidden>☠ 已废</span>
+              <span class="hidden-pill" data-field="hiddenPill" hidden>🙈 已隐藏</span>
+              <button type="button" class="hide-quick" data-field="hideQuickBtn" hidden
+                title="一键隐藏（访客看不到）">🙈</button>
               <button type="button" class="like-btn" data-field="likeBtn" aria-pressed="false" title="点赞置顶">
                 <span class="like-ico" aria-hidden="true">♥</span><span class="like-count" data-field="likeCount">0</span>
               </button>
@@ -295,6 +305,9 @@
             <button type="button" class="card-admin-btn" data-field="adminBtn">编辑这条</button>
             <button type="button" class="card-admin-btn card-admin-dead" data-field="deadBtn" hidden>
               ☠ 加入废站
+            </button>
+            <button type="button" class="card-admin-btn card-admin-hide" data-field="hideBtn" hidden>
+              🙈 一键隐藏
             </button>
             <span class="card-admin-msg" data-field="adminMsg" aria-live="polite"></span>
             <div class="card-admin-form" data-field="adminForm" hidden></div>

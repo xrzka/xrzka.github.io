@@ -183,6 +183,8 @@
       dead: source.dead === true,
       untested: source.untested === true,
       deadNote: source.dead_note || "",
+      // 一键隐藏：访客侧在 rebuild() 里就被过滤掉，管理员登录后仍能看到（带标记）
+      hidden: source.hidden === true,
       extraNote: source.extra_note || "",
       benefits: Array.isArray(source.benefit_flags) ? source.benefit_flags : [],
       tags: (Array.isArray(source.site_tags) && source.site_tags.length ? source.site_tags : source.tags || []).slice(0, 6),
@@ -236,7 +238,8 @@
     if (f.dead || f.untested) return list.sort(cmp);
     // 默认视图分三层沉底：正常站点在上，未测试候选池居中，废站（墓园）垫底。
     // 同层内：点赞过的卡片优先（点赞多的排前面），其余按所选排序（默认综合排名=加入顺序）。
-    const tier = (i) => (i.dead ? 2 : i.untested ? 1 : 0);
+    // 隐藏卡只有管理员看得到，统一沉到最底部，方便一眼找到并取消隐藏。
+    const tier = (i) => (i.hidden ? 3 : i.dead ? 2 : i.untested ? 1 : 0);
     return list.sort((a, b) => {
       const t = tier(a) - tier(b);
       if (t) return t;
@@ -250,9 +253,11 @@
 
   function renderSummary() {
     // 「当前收录」只算活站；废站进墓园单独计数，不再贡献额度合计。
-    const alive = state.items.filter((i) => !i.dead);
+    // 隐藏卡片对访客不存在，所以任何统计都不算它（哪怕管理员当前能看到它）。
+    const counted = state.items.filter((i) => !i.hidden);
+    const alive = counted.filter((i) => !i.dead);
     const total = alive.length;
-    const deadCount = state.items.length - total;
+    const deadCount = counted.length - total;
     // 只合计美元额度。站点的赠送额度单位并不统一（有 $ / ¥ / Gems / 积分），
     // 早先这里把所有 registerBonus 不分单位地相加再前缀一个 "$"，
     // 混进一个 ¥ 站就会算出「$583.76」这种既错单位又带小数的数字。
@@ -325,6 +330,13 @@
     if (item.dead) {
       node.classList.add("dead");
       field("deadPill").hidden = false;
+    }
+
+    // 已隐藏：只有管理员看得到这张卡（访客在 rebuild 里就过滤掉了）
+    if (item.hidden) {
+      node.classList.add("is-hidden");
+      const hiddenPill = field("hiddenPill");
+      if (hiddenPill) hiddenPill.hidden = false;
     }
 
     // 未测试候选池：左边框橙色 +「未测试」徽标，和正常/废站一眼区分
@@ -485,6 +497,53 @@
         await refreshRemote();
         adminFlash = null;
       });
+      // 一键隐藏 / 取消隐藏：标题行的快捷按钮与详情里的按钮共用这一段。
+      // 不弹窗、不删数据，访客立刻看不到；后台「已隐藏卡片」里可恢复。
+      const toggleHidden = async (btn) => {
+        btn.disabled = true;
+        // 隐藏 = 写入 hidden；恢复 = 清掉这条覆盖（clear_fields 与 fields 一次只给一个，
+        // 后端是先清后写，同时给会把刚清掉的字段又写回去）。
+        const result = await adminFetch(
+          "/api/board/admin/override",
+          item.hidden
+            ? { item_id: item.id, fields: {}, clear_fields: ["hidden"] }
+            : { item_id: item.id, fields: { hidden: true } }
+        );
+        btn.disabled = false;
+        if (!result.ok) {
+          msg.textContent = result.error;
+          msg.className = "card-admin-msg bad";
+          return;
+        }
+        adminFlash = {
+          id: item.id,
+          text: item.hidden ? "已取消隐藏，访客可见" : "已隐藏，访客看不到（数据没删）",
+          kind: "ok",
+        };
+        await refreshRemote();
+        adminFlash = null;
+        renderHiddenAdmin();
+      };
+      const hideBtn = field("hideBtn");
+      if (hideBtn) {
+        hideBtn.hidden = false;
+        hideBtn.textContent = item.hidden ? "取消隐藏（恢复展示）" : "🙈 一键隐藏";
+        hideBtn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          toggleHidden(hideBtn);
+        });
+      }
+      // 标题行上的快捷按钮：不用展开卡片就能隐藏/恢复，管理员以外看不到
+      const hideQuick = field("hideQuickBtn");
+      if (hideQuick) {
+        hideQuick.hidden = false;
+        hideQuick.textContent = item.hidden ? "👁" : "🙈";
+        hideQuick.title = item.hidden ? "取消隐藏（恢复展示）" : "一键隐藏（访客看不到）";
+        hideQuick.addEventListener("click", (event) => {
+          event.stopPropagation();
+          toggleHidden(hideQuick);
+        });
+      }
       if (adminFlash && adminFlash.id === item.id) {
         openEditor();
         msg.textContent = adminFlash.text;
@@ -530,7 +589,12 @@
     board.appendChild(frag);
 
     empty.hidden = list.length > 0;
-    count.textContent = list.length ? `显示 ${list.length} / ${state.items.length} 个站点` : "";
+    const hiddenCount = state.items.filter((i) => i.hidden).length;
+    const baseTotal = state.items.length - hiddenCount;
+    count.textContent = list.length
+      ? `显示 ${list.length} / ${baseTotal} 个站点` +
+        (hiddenCount ? ` · 另有 ${hiddenCount} 张已隐藏（仅你可见）` : "")
+      : "";
 
     // 列表条数变化会改变页面高度，重算悬浮按钮的显隐
     if (typeof updateScrollDock === "function") updateScrollDock();
@@ -538,7 +602,10 @@
 
   function rebuild() {
     state.items = state.rawItems.concat(state.customItems)
+      // 软删除对谁都不可见；隐藏的只对访客不可见 —— 管理员登录后仍能看到它，
+      // 才能点「取消隐藏」。所以 adminToken 决定这一层过滤要不要生效。
       .filter((raw) => !(state.overrides[raw && raw.resource_id] || {}).deleted)
+      .filter((raw) => adminToken || !(state.overrides[raw && raw.resource_id] || {}).hidden)
       .map(normalize);
     renderSummary();
     renderBoard();
@@ -617,6 +684,7 @@
     { key: "consumer_category", prop: "category", label: "站点类型", type: "category" },
     { key: "dead", prop: "dead", label: "标记为废站", type: "checkbox" },
     { key: "dead_note", prop: "deadNote", label: "废站原因（已关站 / 无模型可用…）", type: "text" },
+    { key: "hidden", prop: "hidden", label: "隐藏（访客看不到，可在后台取消）", type: "checkbox" },
     { key: "direct_connect", prop: "directConnect", label: "可直连", type: "checkbox" },
     { key: "github_age_required", prop: "githubAge", label: "GitHub 账号要求", type: "text" },
     { key: "account_requirement", prop: "accountRequirement", label: "其他账号要求", type: "text" },
@@ -678,7 +746,10 @@
     box.textContent = "";
     const inputs = {};
     ADMIN_FIELDS.forEach((field) => {
-      const defaults = { rank: state.items.length + 1, category: "welfare", directConnect: true, dead: false };
+      const defaults = {
+        rank: state.items.length + 1, category: "welfare",
+        directConnect: true, dead: false, hidden: false,
+      };
       inputs[field.key] = addAdminField(box, field, defaults[field.prop], false);
     });
     const actions = document.createElement("div");
@@ -695,15 +766,33 @@
     };
     submit.addEventListener("click", async () => {
       const body = {};
-      ADMIN_FIELDS.forEach((field) => { body[field.key] = readAdminValue(field, inputs[field.key]); });
+      ADMIN_FIELDS.forEach((field) => {
+        if (field.key === "hidden") return;   // 隐藏走覆盖层，建完卡再写，见下
+        body[field.key] = readAdminValue(field, inputs[field.key]);
+      });
       if (!body.resource_name) return say("站点名不能为空", "bad");
       submit.disabled = true;
       say("添加中…");
       const result = await adminFetch("/api/board/admin/item", body);
+      if (!result.ok) { submit.disabled = false; return say(result.error, "bad"); }
+      // 「新增后直接隐藏」：先建卡拿到 id，再补一条 hidden 覆盖 ——
+      // 这样取消隐藏就是清掉覆盖，语义与静态卡片上的隐藏完全一致。
+      let justHidden = false;
+      if (inputs.hidden && inputs.hidden.checked && result.data && result.data.id) {
+        const hiddenResult = await adminFetch("/api/board/admin/override", {
+          item_id: result.data.id, fields: { hidden: true },
+        });
+        justHidden = !!hiddenResult.ok;
+      }
       submit.disabled = false;
-      if (!result.ok) return say(result.error, "bad");
-      say("已添加，所有访客立即可见", "ok");
+      say(
+        justHidden
+          ? "已添加并隐藏（访客看不到），可在「已隐藏卡片」里一键恢复"
+          : "已添加，所有访客立即可见",
+        "ok"
+      );
       await refreshRemote();
+      renderHiddenAdmin();
     });
   }
 
@@ -931,6 +1020,59 @@
     });
   }
 
+  /** 已隐藏卡片：数据一行没删，只是访客看不到。恢复 = 清掉 hidden 覆盖。 */
+  function renderHiddenAdmin() {
+    const wrap = $("[data-admin-hidden]");
+    const toggle = $("[data-admin-hidden-toggle]");
+    const list = $("[data-admin-hidden-list]");
+    const msg = $("[data-admin-hidden-msg]");
+    if (!wrap || !toggle || !list || !msg) return;
+    // 直接看 normalize 后的结果：静态快照上的覆盖层 hidden、后台新增卡片自带的
+    // hidden 字段，两种来源都会体现在 item.hidden 上，不会漏掉任何一条。
+    const hidden = state.items
+      .filter((item) => item.hidden)
+      .map((item) => ({ id: item.id, name: item.name || item.id }));
+    toggle.textContent = `已隐藏卡片（${hidden.length}）`;
+    list.textContent = "";
+    if (!hidden.length) {
+      const empty = document.createElement("p");
+      empty.className = "admin-deleted-empty";
+      empty.textContent = "暂无已隐藏的卡片";
+      list.appendChild(empty);
+      return;
+    }
+    hidden.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "admin-deleted-row";
+      const label = document.createElement("span");
+      label.textContent = `${item.name}（${item.id}）`;
+      const restore = document.createElement("button");
+      restore.type = "button";
+      restore.className = "admin-restore";
+      restore.textContent = "取消隐藏";
+      restore.addEventListener("click", async () => {
+        restore.disabled = true;
+        msg.textContent = "恢复中…";
+        msg.className = "admin-new-msg";
+        const result = await adminFetch("/api/board/admin/override", {
+          item_id: item.id, fields: {}, clear_fields: ["hidden"],
+        });
+        restore.disabled = false;
+        if (!result.ok) {
+          msg.textContent = result.error;
+          msg.className = "admin-new-msg bad";
+          return;
+        }
+        msg.textContent = `已恢复「${item.name}」`;
+        msg.className = "admin-new-msg ok";
+        await refreshRemote();
+        renderHiddenAdmin();
+      });
+      row.append(label, restore);
+      list.appendChild(row);
+    });
+  }
+
   function renderAdmin() {
     const panel = $("[data-admin-panel]");
     if (!panel) return;
@@ -954,6 +1096,13 @@
       deletedWrap.hidden = !logged;
       if (logged) renderDeletedAdmin();
       else $("[data-admin-deleted-list]").hidden = true;
+    }
+    // 一键隐藏的卡片：登录后列出，点一下即可恢复展示
+    const hiddenWrap = $("[data-admin-hidden]");
+    if (hiddenWrap) {
+      hiddenWrap.hidden = !logged;
+      if (logged) renderHiddenAdmin();
+      else $("[data-admin-hidden-list]").hidden = true;
     }
     $("[data-admin-sub]").textContent = logged
       ? "已登录。可新增站点或废站；展开卡片后可修改、一键加入废站或删除，静态卡片删除后可以恢复。"
@@ -981,15 +1130,17 @@
       if (!result.ok) return say(result.error, "bad");
       adminToken = result.data.token;
       say("登录成功", "ok");
+      // 先重建数据再渲染面板：登录后已隐藏的卡片要回到 state.items 里，
+      // 卡片上的「一键隐藏」按钮和后台的「已隐藏卡片」列表都是从那里取的。
+      rebuild();
       renderAdmin();
-      renderBoard();
     });
     $("[data-admin-logout]").addEventListener("click", async () => {
       await adminFetch("/api/board/admin/logout", {});
       adminToken = "";
       say("已退出", "ok");
+      rebuild();   // 退出后已隐藏的卡片要重新对访客隐藏
       renderAdmin();
-      renderBoard();
     });
     const toggle = $("[data-admin-new-toggle]");
     const box = $("[data-admin-new-form]");
@@ -1017,6 +1168,14 @@
       deletedList.hidden = !deletedList.hidden;
       renderDeletedAdmin();
     });
+    const hiddenToggle = $("[data-admin-hidden-toggle]");
+    const hiddenList = $("[data-admin-hidden-list]");
+    if (hiddenToggle && hiddenList) {
+      hiddenToggle.addEventListener("click", () => {
+        hiddenList.hidden = !hiddenList.hidden;
+        renderHiddenAdmin();
+      });
+    }
     window.addEventListener("hashchange", renderAdmin);
     renderAdmin();
   }
