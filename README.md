@@ -13,6 +13,8 @@
 | `config.js` | 第一站后台的 Worker / Pages 接口地址 |
 | `data/resources.json` | 静态数据快照，目前是 14 条基础数据 |
 | `.nojekyll` | 关掉 Jekyll，静态文件原样输出 |
+| `stars/` | **另一个独立页面**：`https://xrzka.github.io/stars/` GitHub 应用 Stars 榜，见下 |
+| `.github/workflows/stars-board.yml` | 每天 UTC 02:17 采集 `stars/` 的 star 快照并提交回仓库 |
 
 ## 已实现
 
@@ -85,4 +87,33 @@ site_tags, last_tested_at, group_ratios, models
 ## 尚未实现
 
 投票、评论和定时接口检测仍未实现。新增站点与卡片修改已通过 Cloudflare Worker + D1 后台实现。
+
+## stars/（GitHub 应用 Stars 榜）
+
+挂在同一个 Pages 域名下的**独立子页面**，和第一站的中转站榜单没有代码耦合：自带
+`index.html` / `app.js` / `styles.css` / `collect.mjs` / `data/`，只有 `.github/workflows/stars-board.yml`
+在仓库根（因为 Actions 的 workflow 只能放这儿）。
+
+- 页面：`https://xrzka.github.io/stars/`
+- 完整设计文档与坑：`stars/README.md`（快照差分原理、分片枚举、`--backfill` 回填、参数表、局限）
+- 数据：`stars/data/board.json`（前端唯一读的）、`stars/data/snapshots/<日期>.json`（每日快照）
+
+### 在这里改它时的注意点
+
+- **workflow 里两条路径别弄丢**：采集步骤有 `working-directory: stars`，提交步骤是 `git add stars/data`。
+- **必须先开写权限**：仓库是 2026 年新建的，`GITHUB_TOKEN` 默认只读，快照提交会失败。去
+  Settings → Actions → General → Workflow permissions 选 “Read and write permissions”。
+  workflow 里加了一步预检，权限不对会直接报出这句话，不用去猜 `remote: Permission denied`。
+- **第一次想要周/月/年榜**：Actions → stars-board → Run workflow → 勾 `backfill`（用 `starred_at` 二分回填历史）。
+  不勾的话日榜要等第二天、周榜第八天、年榜一年后才自动出现。
+- **改了 `app.js` / `styles.css` 记得提 `stars/index.html` 里的 `?v=` 版本号**（和第一站同一个 CDN 缓存坑）。
+- **改完在仓库里跑验收**（22 项断言，含无横向溢出/无 JS 错误/筛选互斥）：
+  ```bash
+  node stars/test/e2e.mjs                                  # 本地：自带 http 服务
+  node stars/test/e2e.mjs --url https://xrzka.github.io/stars/   # 线上冒烟
+  node stars/collect.mjs --offline                         # 不联网重算榜单（改分类规则后用）
+  ```
+- **头像**：`avatars.githubusercontent.com` 在国内/本机可能被拦，卡片已经做了 `onerror` 移除
+  （不会留破图标）；e2e 里把这列 CORS 报错算噪声，不算页面 bug。
+
 

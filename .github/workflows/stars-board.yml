@@ -32,6 +32,19 @@ jobs:
         with:
           node-version: '20'
 
+      - name: 检查 GITHUB_TOKEN 写权限
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          push=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+                      -H "Accept: application/vnd.github+json" \
+                      "https://api.github.com/repos/$GITHUB_REPOSITORY" | jq -r '.permissions.push')
+          if [ "$push" != "true" ]; then
+            echo "::error title=缺少写权限::GITHUB_TOKEN 没有 contents:write，采集完也提交不了快照。请到 Settings → Actions → General → Workflow permissions 选 “Read and write permissions”，保存后重跑本 workflow。"
+            exit 1
+          fi
+          echo "token 具备写权限 ✓"
+
       - name: 采集并计算榜单
         working-directory: stars
         env:
