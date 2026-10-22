@@ -1,5 +1,9 @@
 # GitHub 应用 Stars 榜（日 / 周 / 月 / 年）
 
+> **线上地址**：<https://xrzka.github.io/stars/>（代码就在本目录 `xrzka.github.io/stars/`，
+> 定时任务在仓库根的 `.github/workflows/stars-board.yml`）
+> 本文档里的命令默认 **cwd = 本目录**，在站点仓库里就是 `cd stars` 之后再跑。
+
 给 **手机 App** 和 **电脑软件** 做一个 GitHub Stars 排行榜的完整可跑方案：
 每天定时抓一次 star 数存快照，用「当前 star − N 天前 star」算出**真实的新增 star 数**，
 按日 / 周 / 月 / 年出榜，静态页面直接挂 GitHub Pages。
