@@ -34,13 +34,14 @@ GitHub Search API  ──按 topic × star 区间分片枚举──▶  候选�
 data/snapshots/2026-10-19.json   { "owner/name": 12345, ... }   ← 每天一份，永久积累
         │
         ▼  「今天 − 7 天前那份快照」
-data/board.json                  { boards: { day:[], week:[], month:[], year:[] } }
+data/board.json                  清单：各榜条数 + 更新时间（~1KB，首屏只拉它）
+data/boards/{day,week,month,year,new90,total}.json   各榜条目，切 tab 时才拉（懒加载）
         │
         ▼
-index.html + app.js              静态页面（日/周/月/年 tab + 手机/电脑筛选）
+index.html + app.js              静态页面（日/周/月/年 tab + 手机/电脑筛选 + 分页）
 ```
 
-三个关键设计：
+四个关键设计：
 
 1. **分片枚举绕开 1000 条上限**。GitHub 搜索每个查询最多只给 1000 条结果，所以按
    `stars:500..999`、`1000..1999`、`2000..4999` … `>=100000` 切成区间，再乘上几十个 topic，
@@ -51,21 +52,28 @@ index.html + app.js              静态页面（日/周/月/年 tab + 手机/电
    `GET /repos/{o}/{r}/stargazers`（`Accept: application/vnd.github.star+json` 会带上 `starred_at`），
    在「按时间倒序的 star 页」上**二分**出某个日期时点的 star 数 —— 一个 10 万星的仓库只要 ~10 次请求，
    而不是翻 1000 页。回填出来的稀疏快照带 `partial: true` 标记，永不被清理。
+4. **榜单数据按榜拆文件**。每榜最多 2000 条（对得上最大页 2000 条/页），切 tab 才拉对应那个文件并缓存，
+   首屏不会为了看 20 行而拉几 MB。
 
 ## 2. 文件结构
 
 ```
 gh-stars-board/
 ├─ collect.mjs                    采集器（Node 20+，零依赖，只用内置 fetch）
-├─ index.html / app.js / styles.css   静态榜单页（原生 JS，深浅色主题）
-├─ test/e2e.mjs                   Playwright 前端验收（22 项断言）
+├─ index.html / app.js / styles.css   静态榜单页（原生 JS，深浅色主题 + 分页）
+├─ test/e2e.mjs                   Playwright 前端验收（40 项断言，含分页）
 ├─ data/
-│  ├─ board.json                  前端唯一读的数据（每次采集重写）
+│  ├─ board.json                  清单：更新时间 / 收录数 / 各榜条数 / 可用的每页条数（~1KB）
+│  ├─ boards/<key>.json           每个榜单的条目（day/week/month/year/new90/total），前端按 tab 懒加载
 │  ├─ repos.json                  所有仓库的元信息（简介/语言/topics/平台分类…）
 │  ├─ seeds.txt                   手工补录的仓库（没打 topic 的知名 App）
 │  └─ snapshots/2026-10-19.json   每日 star 快照（历史，前端不读）
 └─ .github/workflows/stars-board.yml  每天定时跑 + 提交快照
 ```
+
+> 榜单数据**不塞进 `board.json`**：每榜最多 2000 条（最大页 2000 条/页），一页只需要一个文件。
+> 全部塞一起会让首屏拉一个几 MB 的 JSON，而用户第一眼只看 20 行。
+> 顺带一提，`data/` 每天被重写，所以 `boards/*.json` 涨得快时就把 `data/` 挪到独立分支。
 
 ## 3. 本地跑
 
@@ -119,7 +127,7 @@ node collect.mjs --backfill
 | `--min-stars` | 500 | 候选池最低 star，调低会让池子变大、耗时变长 |
 | `--gap` | 2300ms | 请求间隔。认证后 Search API 是 **30 次/分钟**，2300ms ≈ 26 次/分钟，别调太小 |
 | `--max-pages` | 3 | 每个「topic × star 区间」查询翻几页（每页 100 条） |
-| `--board-size` | 200 | 每个榜单最多输出多少条 |
+| `--board-size` | 2000 | 每个榜单最多输出多少条（和前端最大页 2000 条/页对齐） |
 | `--backfill` | 关 | 回填日/周/月/年 baseline，跑一次就够 |
 | `--backfill-repos` | 80 | 只回填总 star 最高的前 N 个仓库（核心 API 额度 5000/小时） |
 | `--backfill-budget` | 3000 | 回填请求硬上限，超了自动停 |
@@ -145,19 +153,29 @@ node collect.mjs --offline   # 1 秒出结果，看 board.json 里哪个仓库�
   勾上「包含库 / 框架 / 清单」才显示 —— 否则 `flutter/flutter` 这类框架会霸榜。
   分类结果落在 `repos.json` 的 `kind` 字段（`app` / `lib` / `meta`），随时可查、可回改。
 - 搜索（仓库名 / 简介 / 语言 / topic）、深浅色主题、归档仓库打「已归档」标。
+- **分页**：每页可选 **10 / 20 / 50 / 100 / 500 / 1000 / 2000 条**（选择存 `localStorage`），
+  带首页 / 上一页 / 跳页 / 下一页 / 末页，状态行写「第 x / y 页 · 显示 a–b · 共 N 条」。
+  **卡片上的 `#N` 是全局名次，不是本页序号** —— 翻到第 3 页（10 条/页）第一张就是 `#21`；
+  金银铜配色也跟着全局名次走，不会让每一页的第一张都变金色。列表下方还有一条同样的翻页条，
+  只有真正分页时才出现。
 - 顶部口径行会写明**当前榜的真实窗口**，例如「近 3 天新增 star（基准快照 2026-10-16）」——
   基准快照不总是精确 N 天前，写出来才不会误导。
 
 ## 7. 自动化测试
 
 ```bash
-node test/e2e.mjs                  # 用真实 Playwright（系统 Chrome）跑 22 项前端验收
-node test/e2e.mjs --root <dir>     # 指定目录，配合造假快照可以做「六个榜都有数据」的确定性验收
+node test/e2e.mjs                  # 真实 Playwright（系统 Chrome）跑 40 项前端验收
+node test/e2e.mjs --root <dir>     # 指定目录，配合造假快照做「六个榜都有数据」的确定性验收
+node test/e2e.mjs --url https://xrzka.github.io/stars/    # 线上冒烟
 ```
 
-覆盖：tab 与可用榜单一致、默认过滤库/框架/清单、平台筛选互斥、勾选后卡片变多、
-搜索命中/无结果提示、口径行窗口天数、主题切换、外链 `rel=noopener`、
-无 JS 报错、桌面与 390px 手机宽度都无横向溢出。退出码 0 才算过。
+覆盖：tab 与可用榜单一致、默认过滤库/框架/清单、**平台筛选互斥且完备（手机+电脑=全部，按「共 N 条」比而不是卡片数）**、
+搜索命中 / 无结果提示 / 搜索后回到第 1 页、口径行窗口天数、
+**分页（选项齐全、每页条数、总页数、名次跨页连续、跳页、末页条数、首末页按钮禁用态、2000 条/页一页装完）**、
+主题切换、外链 `rel=noopener`、无 JS 报错、桌面与 390px 手机宽度无横向溢出。退出码 0 才算过。
+
+> 改分页逻辑时特别注意：断言要看「共 N 条」这类分页状态，不能拿 `document.querySelectorAll('.card').length` 当总数 ——
+> 有每页上限之后这两者不再相等（第一版就是这么写错的）。
 
 想在不联网的情况下验证「日/周/月/年」四个榜，造几份历史快照再离线重算即可：
 

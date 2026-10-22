@@ -96,7 +96,9 @@ site_tags, last_tested_at, group_ratios, models
 
 - 页面：`https://xrzka.github.io/stars/`
 - 完整设计文档与坑：`stars/README.md`（快照差分原理、分片枚举、`--backfill` 回填、参数表、局限）
-- 数据：`stars/data/board.json`（前端唯一读的）、`stars/data/snapshots/<日期>.json`（每日快照）
+- 数据：`stars/data/board.json`（清单，~1KB）+ `stars/data/boards/<榜名>.json`（各榜条目，切 tab 才拉）
+  + `stars/data/snapshots/<日期>.json`（每日快照）
+- 分页：每页 10 / 20 / 50 / 100 / 500 / 1000 / 2000 条，卡片 `#N` 是全局名次
 
 ### 在这里改它时的注意点
 

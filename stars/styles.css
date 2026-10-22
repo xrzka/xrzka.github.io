@@ -12,6 +12,8 @@ html[data-theme="light"] {
   --shadow: 0 1px 3px rgba(31,35,40,.12);
 }
 * { box-sizing: border-box; }
+/* .row 的 display:flex 会盖掉 UA 的 [hidden]，必须显式兜住（底部翻页条、空态提示都靠它） */
+[hidden] { display: none !important; }
 body {
   margin: 0; background: var(--bg); color: var(--fg);
   font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -47,13 +49,26 @@ h1 { font-size: 19px; margin: 0; letter-spacing: .2px; }
 .meta { margin: 12px 0 0; font-size: 12.5px; color: var(--fg2); }
 .meta b { color: var(--fg); }
 
+/* ---- 分页 ---- */
+.pagerbar { gap: 8px; font-size: 13px; color: var(--fg2); }
+.pagerbar.bottom { justify-content: center; background: var(--bg2); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; }
+.psz { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.pszsel { background: var(--bg); border: 1px solid var(--line); color: var(--fg); border-radius: 8px; padding: 5px 8px; font-size: 13px; }
+.pstat { font-variant-numeric: tabular-nums; color: var(--fg2); }
+.pnav { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.pnav .ghost { padding: 4px 9px; font-size: 13px; }
+.pnav .ghost:disabled { opacity: .4; cursor: not-allowed; }
+.jump { width: 62px; background: var(--bg); border: 1px solid var(--line); color: var(--fg); border-radius: 8px; padding: 4px 7px; font-size: 13px; }
+.jump:disabled { opacity: .4; }
+
 .board { display: flex; flex-direction: column; gap: 8px; }
 .card { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: start; background: var(--bg2); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); }
 .card:hover { border-color: var(--accent2); }
 .rank { font-size: 17px; font-weight: 700; color: var(--fg2); text-align: center; padding-top: 4px; font-variant-numeric: tabular-nums; }
-.card:nth-child(1) .rank { color: #e3b341; }
-.card:nth-child(2) .rank { color: #a8b3bd; }
-.card:nth-child(3) .rank { color: #c98a4b; }
+/* 金银铜按「全局名次」上色，不能按 nth-child（翻到第 5 页时第一个卡片不该是金色） */
+.card.top1 .rank { color: #e3b341; }
+.card.top2 .rank { color: #a8b3bd; }
+.card.top3 .rank { color: #c98a4b; }
 .main { min-width: 0; }
 .title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .avatar { width: 18px; height: 18px; border-radius: 4px; vertical-align: -3px; }

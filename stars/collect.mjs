@@ -20,9 +20,12 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(HERE, 'data');
 const SNAP_DIR = path.join(DATA_DIR, 'snapshots');
+const BOARDS_DIR = path.join(DATA_DIR, 'boards');          // 每个榜单一个文件，前端按 tab 懒加载
 const META_FILE = path.join(DATA_DIR, 'repos.json');
-const BOARD_FILE = path.join(DATA_DIR, 'board.json');
+const BOARD_FILE = path.join(DATA_DIR, 'board.json');       // 只是清单：元信息 + 各榜条数
 const SEED_FILE = path.join(DATA_DIR, 'seeds.txt');
+
+const PAGE_SIZES = [10, 20, 50, 100, 500, 1000, 2000];
 
 const argv = process.argv.slice(2);
 const hasFlag = (f) => argv.includes(f);
@@ -38,7 +41,7 @@ const MAX_PAGES = Number(opt('--max-pages', SMOKE ? 1 : 3));
 const MIN_STARS = Number(opt('--min-stars', 500));
 const BACKFILL_REPOS = Number(opt('--backfill-repos', 80));
 const BACKFILL_BUDGET = Number(opt('--backfill-budget', 3000));
-const BOARD_SIZE = Number(opt('--board-size', 200));
+const BOARD_SIZE = Number(opt('--board-size', 2000));           // 前端最大页就是 2000 条/页
 
 const MOBILE_TOPICS = SMOKE
   ? ['android', 'flutter']
@@ -378,11 +381,11 @@ async function backfill(metaRepos) {
 }
 
 /* --------------------------------------------------------------- 主流程 */
-/** 榜单里每条只保留前端要渲染的字段，board.json 才不至于几 MB */
+/** 榜单里每条只保留前端要渲染的字段（简介截到 160 字），2000 条/榜也不至于把页面撑爆 */
 function pick(m, full, stars, delta) {
   return {
     full_name: full, stars, delta,
-    url: m.url, avatar: m.avatar, desc: m.desc, language: m.language,
+    url: m.url, avatar: m.avatar, desc: (m.desc || '').slice(0, 160), language: m.language,
     license: m.license, archived: m.archived, platform: m.platform, kind: m.kind,
     created_at: m.created_at, topics: (m.topics || []).slice(0, 6),
   };
@@ -491,18 +494,34 @@ async function main() {
   periodMeta.total = { available: true };
   periodMeta.new90 = { available: true, window_days: 90 };
 
+  /* 写出榜单：每个榜单一个文件（前端按 tab 懒加载），board.json 只留清单 */
+  fs.mkdirSync(BOARDS_DIR, { recursive: true });
+  const generatedAt = new Date().toISOString();
+  const counts = {};
+  let bytes = 0;
+  for (const [key, rows] of Object.entries(boards)) {
+    const f = path.join(BOARDS_DIR, `${key}.json`);
+    writeJson(f, { key, generated_at: generatedAt, count: rows.length, entries: rows });
+    counts[key] = rows.length;
+    bytes += fs.statSync(f).size;
+  }
+
   const board = {
-    generated_at: new Date().toISOString(),
+    generated_at: generatedAt,
     source: 'github-search-api + snapshot-diff',
     min_stars: MIN_STARS,
+    board_size: BOARD_SIZE,
+    page_sizes: PAGE_SIZES,
     tracked: Object.keys(todayStars).length,
     snapshots: snaps2.map((s) => s.date),
     periods: periodMeta,
-    boards,
+    counts,
+    boards_dir: 'data/boards',
   };
   writeJson(BOARD_FILE, board);
-  writeJson(META_FILE, { generated_at: board.generated_at, repos: metaRepos });
-  log(`✅ 写出 ${path.relative(HERE, BOARD_FILE)}（${(fs.statSync(BOARD_FILE).size / 1024).toFixed(0)} KB）`);
+  writeJson(META_FILE, { generated_at: generatedAt, repos: metaRepos });
+  log(`✅ 清单 ${path.relative(HERE, BOARD_FILE)}（${(fs.statSync(BOARD_FILE).size / 1024).toFixed(1)} KB）；`
+    + `${Object.keys(boards).length} 个榜单文件共 ${(bytes / 1024 / 1024).toFixed(1)} MB，最大单榜 ${Math.max(...Object.values(counts))} 条`);
 }
 
 main().catch((e) => { console.error('❌ 采集失败：', e); process.exit(1); });

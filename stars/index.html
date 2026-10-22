@@ -6,7 +6,7 @@
 <title>GitHub 应用 Stars 榜 · 手机 / 电脑</title>
 <meta name="description" content="GitHub 手机应用与电脑应用的 Stars 日榜、周榜、月榜、年榜，基于每日快照差分计算。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E★%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="styles.css?v=2">
+<link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 <header class="topbar">
@@ -32,11 +32,13 @@
       <label class="chk"><input id="withLib" type="checkbox"> 包含库 / 框架 / 清单</label>
       <input id="q" class="search" type="search" placeholder="搜索仓库名 / 简介 / 语言 / topic…" autocomplete="off">
     </div>
+    <div id="pagerTop" class="row pagerbar"></div>
     <p id="meta" class="meta">加载中…</p>
   </section>
 
   <section id="board" class="board" aria-live="polite"></section>
   <p id="empty" class="empty" hidden></p>
+  <div id="pagerBottom" class="row pagerbar bottom" hidden></div>
 
   <section class="panel note">
     <h2>数据口径</h2>
@@ -46,6 +48,7 @@
       <li>候选池来自 GitHub Search API，按 <code>topic × star 区间</code> 分片枚举；打上 <code>android / ios / flutter / desktop-app / electron / tauri</code> 等 topic 的应用优先收录，也可以在 <code>data/seeds.txt</code> 里手工补仓库。</li>
       <li>仓库分类（手机 / 电脑）由 topic、语言与简介关键词打分得出，可能有个别误判。</li>
       <li>名字或简介里带 library / framework / sdk / awesome / tutorial 之类的会被标成「库/框架」「清单/教程」，<b>默认不上桌</b>（否则 <code>flutter/flutter</code> 这类框架会霸榜），勾选后可显示。</li>
+      <li><b>分页</b>：每页可选 10 / 20 / 50 / 100 / 500 / 1000 / 2000 条，翻页不会丢掉名次 —— 卡片上的 <code>#N</code> 是**该榜全局名次**，不是本页序号。</li>
       <li>快照每天 UTC 定时更新一次，页面是静态快照，不是实时数据。</li>
     </ul>
   </section>
@@ -55,6 +58,6 @@
   <span id="stamp">—</span> · <a class="link" href="https://github.com/search?q=topic%3Aandroid+stars%3A%3E1000&type=repositories" target="_blank" rel="noopener noreferrer">GitHub Search</a>
 </footer>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
