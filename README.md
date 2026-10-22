@@ -106,10 +106,14 @@ site_tags, last_tested_at, group_ratios, models
 - **必须先开写权限**：仓库是 2026 年新建的，`GITHUB_TOKEN` 默认只读，快照提交会失败。去
   Settings → Actions → General → Workflow permissions 选 “Read and write permissions”。
   workflow 里加了一步预检，权限不对会直接报出这句话，不用去猜 `remote: Permission denied`。
-- **第一次想要周/月/年榜**：Actions → stars-board → Run workflow → 勾 `backfill`（用 `starred_at` 二分回填历史）。
-  不勾的话日榜要等第二天、周榜第八天、年榜一年后才自动出现。
+  改完 **点一次 Actions → stars-board → Run workflow** 即会重新触发（或推一次 `stars/collect.mjs`）。
+- **周/月/年榜不用手动勾 backfill**：`collect.mjs` 在"有任何一期缺基准 + 从没回填过（快照无 `partial` 标记）"
+  时会自己补一次回填，跑过就永不重复；回填只覆盖 star 最高的前 80 个仓库，所以增量榜第一天是「部分回填」，
+  之后靠每日快照变全。那个 `backfill` 输入框是给"想强制重跑一次回填"用的。
+- **`push` 触发只认 `stars/collect.mjs` 和 workflow 文件**（`paths` 白名单 + `github.actor != 'github-actions[bot]'` 双保险），
+  数据提交不会自我触发；改前端不会顺手触发一次全量采集。
 - **改了 `app.js` / `styles.css` 记得提 `stars/index.html` 里的 `?v=` 版本号**（和第一站同一个 CDN 缓存坑）。
-- **改完在仓库里跑验收**（22 项断言，含无横向溢出/无 JS 错误/筛选互斥）：
+- **改完在仓库里跑验收**（40 项断言，含分页/名次跨页连续/无横向溢出/无 JS 错误/筛选互斥）：
   ```bash
   node stars/test/e2e.mjs                                  # 本地：自带 http 服务
   node stars/test/e2e.mjs --url https://xrzka.github.io/stars/   # 线上冒烟

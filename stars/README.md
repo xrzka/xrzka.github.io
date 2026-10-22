@@ -102,8 +102,19 @@ node collect.mjs --backfill
 1. 把这个目录推到一个仓库，比如 `xrzka/gh-stars-board`（公开仓库，`GITHUB_TOKEN` 就能用）。
 2. 仓库 **Settings → Pages → Source: Deploy from a branch → `main` / `/ (root)`**。
 3. 仓库 **Settings → Actions → General → Workflow permissions → Read and write**（提交快照需要）。
-4. 想立刻有周/月/年榜：**Actions → stars-board → Run workflow → 勾上 backfill**。
+   **只差这一步**：默认是只读，采集能跑完但提交那步会被拦（workflow 开头有个预检，5 秒内就报
+   「缺少写权限」并给出这句话，不会白跑十几分钟）。改完不用勾任何东西 ——
+   再点一次 **Actions → stars-board → Run workflow**，或者随便推一次 `stars/collect.mjs` 就会重新触发。
+4. **日/周/月/年榜不用手动回填**：第一次成功运行时，采集器发现这几期还没有历史基准、
+   也从未回填过（快照里没有 `partial` 标记），会自己补一次 `--backfill`；跑过一次就永不重复
+   （不要去勾那个 `backfill` 输入框，那是给"想强制重跑一次回填"用的）。
+   回填只覆盖总 star 最高的前 80 个仓库，所以**四个增量榜第一天上榜的是这 80 个（口径行会标「部分回填」）**，
+   之后随着每日快照积累，粒度会自然变全。
 5. 之后每天 UTC 02:17 自动跑一次，页面地址 `https://<user>.github.io/gh-stars-board/`。
+
+另外 `push` 触发只认 `stars/collect.mjs` 和 workflow 文件本身 —— 数据提交（`stars/data/**`）故意不在
+`paths` 列表里，否则 bot 提交数据 → 触发新一轮 → 又提交，自己转自己；job 上还有一道
+`if: github.actor != 'github-actions[bot]'` 兜底。所以改前端不用怕每次推都触发一次全量采集。
 
 想挂成已有站点的子目录（例如 `https://xrzka.github.io/stars/`）：把本目录内容拷进那个仓库的
 `stars/` 文件夹，把 workflow 放到**仓库根**的 `.github/workflows/`，并给两处加 `working-directory`：

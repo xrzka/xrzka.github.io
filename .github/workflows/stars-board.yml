@@ -10,9 +10,15 @@ on:
   workflow_dispatch:
     inputs:
       backfill:
-        description: '回填日/周/月/年 baseline（用 stargazers 的 starred_at 二分，消耗较多核心 API 额度）'
+        description: '强制回填日/周/月/年 baseline（首次运行会自己回填一次，平时不用勾）'
         type: boolean
         default: false
+  push:
+    # 只认采集器代码和本 workflow 的改动：数据提交（stars/data/**）不在列表里，
+    # 否则 bot 提交数据 → 触发新一轮 → 又提交，自己转自己。
+    paths:
+      - 'stars/collect.mjs'
+      - '.github/workflows/stars-board.yml'
 
 permissions:
   contents: write
@@ -23,8 +29,10 @@ concurrency:
 
 jobs:
   collect:
+    # 兜底：即使 paths 过滤漏了，也不让 bot 自己的提交触发新一轮采集
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +48,7 @@ jobs:
                       -H "Accept: application/vnd.github+json" \
                       "https://api.github.com/repos/$GITHUB_REPOSITORY" | jq -r '.permissions.push')
           if [ "$push" != "true" ]; then
-            echo "::error title=缺少写权限::GITHUB_TOKEN 没有 contents:write，采集完也提交不了快照。请到 Settings → Actions → General → Workflow permissions 选 “Read and write permissions”，保存后重跑本 workflow。"
+            echo "::error title=缺少写权限::GITHUB_TOKEN 只有只读权限，采集完也提交不了快照。请到 Settings → Actions → General → Workflow permissions 选 “Read and write permissions” 并保存，然后在本页点 “Run workflow”（或随便推一次 stars/collect.mjs）重跑。"
             exit 1
           fi
           echo "token 具备写权限 ✓"
@@ -49,6 +57,7 @@ jobs:
         working-directory: stars
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # 首次运行（一个历史基准都没有、也没回填过）collect.mjs 会自己补一次 --backfill
         run: node collect.mjs ${{ inputs.backfill && '--backfill' || '' }}
 
       - name: 提交数据快照

@@ -448,7 +448,26 @@ async function main() {
   const snaps = loadSnapshots();
   log(`快照：${snaps.length} 份，${snaps[0]?.date || '-'} → ${snaps[snaps.length - 1]?.date || '-'}`);
 
-  if (DO_BACKFILL) await backfill(metaRepos);
+  /* 首次运行自动回填：有任何一期榜单缺基准（日榜可能已经有昨天那份、但周/月/年是空的）、
+     且从没回填过（快照里没有 partial 标记）时才触发，跑过一次就永不重复。
+     这样新建的仓库只要定时任务跑起来就能自己长出日/周/月/年榜，不需要有人去点 "Run workflow" 勾 backfill。 */
+  const everBackfilled = fs.existsSync(SNAP_DIR) && fs.readdirSync(SNAP_DIR)
+    .some((f) => { const j = readJson(path.join(SNAP_DIR, f), null); return j && j.partial; });
+  const someMissing = PERIODS.some((p) => !baselineFor(snaps, p.days, p.tol));
+  const autoBackfill = !OFFLINE && !DO_BACKFILL && someMissing && !everBackfilled && !!TOKEN;
+  if (!OFFLINE && !DO_BACKFILL && !everBackfilled && someMissing && !TOKEN) {
+    log('首次运行但没有 GITHUB_TOKEN，跳过自动回填（无 token 时核心 API 额度不够，回填会半途而废）');
+  }
+
+  if (DO_BACKFILL || autoBackfill) {
+    if (autoBackfill) log('首次运行：日/周/月/年还没攒够基准，自动执行一次 --backfill');
+    try {
+      await backfill(metaRepos);
+    } catch (e) {
+      // 回填是锦上添花：失败了也要让总榜/新星榜先发出去，下次定时任务会再试
+      log(`⚠ 回填失败（不影响总榜/新星榜发布）：${e.message}`);
+    }
+  }
   const snaps2 = loadSnapshots();
 
   /* 计算榜单 */
