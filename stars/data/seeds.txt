@@ -1,0 +1,12 @@
+# 手工补录候选仓库：一行一个 full_name，`#` 开头是注释（行内不要写注释）。
+# 用途：有些知名 App 没打 android/ios/desktop-app 之类 topic，自动枚举抓不到，就在这里点名收进来。
+# 注意：必须是 GitHub 上真实存在的 用户名/仓库名，写错会在日志里报 404 并跳过。
+
+# --- 手机应用 ---
+signalapp/Signal-Android
+zhanghai/MaterialFiles
+
+# --- 电脑应用 ---
+microsoft/PowerToys
+localsend/localsend
+obsidianmd/obsidian-releases

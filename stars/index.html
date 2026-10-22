@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GitHub 应用 Stars 榜 · 手机 / 电脑</title>
+<meta name="description" content="GitHub 手机应用与电脑应用的 Stars 日榜、周榜、月榜、年榜，基于每日快照差分计算。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E★%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      <span class="logo">★</span>
+      <div>
+        <h1>GitHub 应用 Stars 榜</h1>
+        <p class="sub">手机 App / 电脑软件 · 日榜 · 周榜 · 月榜 · 年榜</p>
+      </div>
+    </div>
+    <button id="themeBtn" class="ghost" type="button" title="切换主题">🌗</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel">
+    <div class="row">
+      <div id="periodTabs" class="tabs" role="tablist"></div>
+    </div>
+    <div class="row">
+      <div id="platformTabs" class="tabs small" role="tablist"></div>
+      <label class="chk"><input id="withLib" type="checkbox"> 包含库 / 框架 / 清单</label>
+      <input id="q" class="search" type="search" placeholder="搜索仓库名 / 简介 / 语言 / topic…" autocomplete="off">
+    </div>
+    <p id="meta" class="meta">加载中…</p>
+  </section>
+
+  <section id="board" class="board" aria-live="polite"></section>
+  <p id="empty" class="empty" hidden></p>
+
+  <section class="panel note">
+    <h2>数据口径</h2>
+    <ul>
+      <li><b>日 / 周 / 月 / 年榜</b>：把每天抓到的 star 数存成快照，榜值 = 当前 star − N 天前快照的 star，只统计正增量。</li>
+      <li><b>新星榜</b>：近 90 天创建、star 最高的应用；<b>总榜</b>：star 总量。</li>
+      <li>候选池来自 GitHub Search API，按 <code>topic × star 区间</code> 分片枚举；打上 <code>android / ios / flutter / desktop-app / electron / tauri</code> 等 topic 的应用优先收录，也可以在 <code>data/seeds.txt</code> 里手工补仓库。</li>
+      <li>仓库分类（手机 / 电脑）由 topic、语言与简介关键词打分得出，可能有个别误判。</li>
+      <li>名字或简介里带 library / framework / sdk / awesome / tutorial 之类的会被标成「库/框架」「清单/教程」，<b>默认不上桌</b>（否则 <code>flutter/flutter</code> 这类框架会霸榜），勾选后可显示。</li>
+      <li>快照每天 UTC 定时更新一次，页面是静态快照，不是实时数据。</li>
+    </ul>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <span id="stamp">—</span> · <a class="link" href="https://github.com/search?q=topic%3Aandroid+stars%3A%3E1000&type=repositories" target="_blank" rel="noopener noreferrer">GitHub Search</a>
+</footer>
+
+<script src="app.js?v=1"></script>
+</body>
+</html>

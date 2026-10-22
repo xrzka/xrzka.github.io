@@ -1,0 +1,51 @@
+name: stars-board
+
+# GitHub 应用 Stars 榜（stars/ 子目录）的每日采集
+# 采集器、前端、数据全在 stars/ 下，这里只负责定时跑 + 把数据提交回去
+
+on:
+  schedule:
+    # 每天 02:17 UTC（北京 10:17）；GitHub 定时任务可能延迟几分钟到几十分钟
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: '回填日/周/月/年 baseline（用 stargazers 的 starred_at 二分，消耗较多核心 API 额度）'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stars-board
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 采集并计算榜单
+        working-directory: stars
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node collect.mjs ${{ inputs.backfill && '--backfill' || '' }}
+
+      - name: 提交数据快照
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add stars/data
+          if git diff --cached --quiet; then
+            echo "本次无数据变化"
+            exit 0
+          fi
+          git commit -m "chore(stars): stars board $(date -u +%Y-%m-%d)"
+          git push
