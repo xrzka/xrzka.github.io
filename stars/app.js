@@ -115,7 +115,13 @@
     const main = el('div', 'main');
     const title = el('div', 'title');
     const av = safeUrl(r.avatar);
-    if (av) { const img = el('img', 'avatar'); img.src = av; img.alt = ''; img.loading = 'lazy'; title.appendChild(img); }
+    if (av) {
+      const img = el('img', 'avatar');
+      img.src = av; img.alt = ''; img.loading = 'lazy';
+      // 头像 CDN（avatars.githubusercontent.com）被墙或被 CORS 拦时，别在标题前留一个破图标
+      img.onerror = () => img.remove();
+      title.appendChild(img);
+    }
     const a = el('a', 'repo', r.full_name);
     const href = safeUrl(r.url) || `https://github.com/${r.full_name}`;
     a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer';

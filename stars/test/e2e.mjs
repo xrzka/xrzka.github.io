@@ -3,6 +3,7 @@
  *
  *   node test/e2e.mjs                 # 测当前目录（用 data/board.json 真实数据）
  *   node test/e2e.mjs --root <dir>    # 测指定目录（配合 --offline + 造假快照做确定性验收）
+ *   node test/e2e.mjs --url https://xrzka.github.io/stars/   # 线上冒烟：直接打已发布的页面
  *
  * 退出码 0 = 全部通过。
  */
@@ -14,10 +15,11 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
+const LIVE = argv.includes('--url') ? argv[argv.indexOf('--url') + 1] : null;
 const ROOT = path.resolve(argv.includes('--root') ? argv[argv.indexOf('--root') + 1] : path.join(HERE, '..'));
 const PORT = Number(argv.includes('--port') ? argv[argv.indexOf('--port') + 1] : 8917);
-const SHOT = path.join(HERE, 'out', 'board.png');
 const OUT_DIR = path.join(HERE, 'out');
+const SHOT = path.join(OUT_DIR, LIVE ? 'board-live.png' : 'board.png');
 
 function loadPlaywright() {
   // 本机 playwright 装在不同位置（工作区 / 别处的 node_modules / NODE_PATH），逐个试
@@ -56,25 +58,29 @@ function serve() {
   return new Promise((r) => srv.listen(PORT, '127.0.0.1', () => r(srv)));
 }
 
-const board = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'board.json'), 'utf8'));
+const board = LIVE
+  ? await fetch(new URL('data/board.json', LIVE).href, { cache: 'no-store' }).then((r) => r.json())
+  : JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'board.json'), 'utf8'));
 
-const srv = await serve();
+const srv = LIVE ? null : await serve();
+const PAGE_URL = LIVE || `http://127.0.0.1:${PORT}/`;
 const browser = await chromium.launch({ channel: 'chrome' });
 const page = await browser.newPage({ viewport: { width: 1100, height: 900 } });
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
-// 资源加载失败（favicon / 被墙的头像 CDN）不算页面 bug，只数真正的 JS 错误
+// 噪声不算页面 bug：资源 404（favicon）、头像 CDN 被墙 / 被浏览器本地网络策略拦（loopback）
+const NOISE = /(Failed to load resource|avatars\.githubusercontent\.com|loopback address space)/i;
 page.on('console', (m) => {
-  if (m.type() === 'error' && !/Failed to load resource/i.test(m.text())) errors.push(m.text());
+  if (m.type() === 'error' && !NOISE.test(m.text())) errors.push(m.text());
 });
 
 const cards = () => page.locator('.card');
-const firstCardText = () => page.locator('.card').first().innerText();
 const metaText = () => page.locator('#meta').innerText();
 
 try {
-  await page.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('.card', { timeout: 8000 });
+  console.log(LIVE ? `线上冒烟：${PAGE_URL}` : `本地验收：${PAGE_URL}（根目录 ${ROOT}）`);
+  await page.goto(PAGE_URL, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.card', { timeout: LIVE ? 20000 : 8000 });
 
   /* 1. tab 数量与可用性 */
   const tabs = await page.locator('#periodTabs button').allInnerTexts();
@@ -189,7 +195,7 @@ try {
   console.log(`\n截图：${SHOT}`);
 } finally {
   await browser.close();
-  srv.close();
+  if (srv) srv.close();
 }
 
 console.log(failures === 0 ? '\n✅ 全部通过' : `\n❌ ${failures} 项失败`);
