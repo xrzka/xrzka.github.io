@@ -399,6 +399,109 @@ main { padding: 0 clamp(16px, 4vw, 40px) 48px; }
   border-radius: var(--radius);
 }
 
+/* ---------- 区块标题（真实需求 / 平台线索） ---------- */
+.section-head {
+  margin: 32px 0 14px;
+}
+.section-head h2 {
+  margin: 0 0 6px;
+  font-size: 19px;
+  letter-spacing: 0.2px;
+}
+.section-note {
+  margin: 0;
+  max-width: 78ch;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.section-note a { color: var(--accent); }
+
+/* ---------- 本站真实需求 ---------- */
+.demand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.demand-card .board-head { flex-wrap: wrap; }
+.board-note {
+  margin: 0;
+  padding: 10px 14px 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.board-badge[data-tone="ok"] { background: var(--accent-soft); color: var(--accent); }
+
+/* 词条行（站内搜索热词 / 缺口） */
+.term-list { padding-top: 8px; }
+.term {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-bottom: 1px dashed var(--border);
+}
+.term:last-child { border-bottom: 0; }
+.term[data-gap="1"] .term-text { color: var(--hot); }
+.term-main { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; }
+.term-text {
+  font-weight: 600;
+  word-break: break-all;
+}
+.term-meta { font-size: 12px; color: var(--text-muted); }
+.term-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+
+/* 帮找榜 */
+.want-list { padding-top: 8px; }
+.want {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 6px;
+  border-bottom: 1px dashed var(--border);
+}
+.want:last-child { border-bottom: 0; }
+.want-votes {
+  flex: 0 0 auto;
+  min-width: 44px;
+  text-align: center;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.want-main { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; }
+.want-title { font-weight: 600; word-break: break-word; }
+.want-note, .want-reply { font-size: 12px; color: var(--text-muted); word-break: break-word; }
+
+/* 点击榜 */
+.click-list { padding-top: 8px; }
+.click {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 6px;
+  border-bottom: 1px dashed var(--border);
+}
+.click:last-child { border-bottom: 0; }
+.click-name { flex: 1 1 auto; min-width: 0; word-break: break-word; }
+.click-sec {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 7px;
+}
+.click-n {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- about / footer ---------- */
 .about {
   margin-top: 36px;
@@ -426,4 +529,8 @@ main { padding: 0 clamp(16px, 4vw, 40px) 48px; }
   .controls { top: 58px; }
   .site-nav { gap: 10px; font-size: 13px; }
   .site-nav a:nth-child(3) { display: none; }
+  .section-head { margin-top: 24px; }
+  .term { flex-wrap: wrap; }
+  .term-actions { width: 100%; justify-content: flex-end; }
+  .demand-grid { grid-template-columns: minmax(0, 1fr); }
 }

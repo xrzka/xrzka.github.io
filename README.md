@@ -14,7 +14,7 @@
 | `data/resources.json` | 静态数据快照，目前是 14 条基础数据 |
 | `.nojekyll` | 关掉 Jekyll，静态文件原样输出 |
 | `stars/` | **另一个独立页面**：`https://xrzka.github.io/stars/` GitHub 应用 Stars 榜，见下 |
-| `qiu/` | **另一个独立页面**：`https://xrzka.github.io/qiu/` 求资源热榜（B站/抖音/快手/小红书），见下 |
+| `qiu/` | **另一个独立页面**：`https://xrzka.github.io/qiu/` 求资源需求看板（本站真实搜索/缺口/帮找/点击 + 四平台热榜线索），见下 |
 | `.github/workflows/stars-board.yml` | 每天 UTC 02:17 采集 `stars/` 的 star 快照并提交回仓库 |
 
 ## 已实现
@@ -123,22 +123,48 @@ site_tags, last_tested_at, group_ratios, models
 - **头像**：`avatars.githubusercontent.com` 在国内/本机可能被拦，卡片已经做了 `onerror` 移除
   （不会留破图标）；e2e 里把这列 CORS 报错算噪声，不算页面 bug。
 
-## qiu/（求资源热榜）
+## qiu/（求资源需求看板）
 
-挂在同一个 Pages 域名下的**独立子页面**，目标是一屏看清 B站 / 抖音 / 快手 / 小红书
-四个平台上"大家在搜什么"，从而判断哪些资源有需求。页面本身只有
-`index.html` / `styles.css` / `app.js` 三个文件，数据全部来自第二站那个
-Cloudflare Worker 的 `GET /api/hot`（代码在 `../mo_site/worker/hot.js`）。
+挂在同一个 Pages 域名下的**独立子页面**，只干一件事：回答「大家到底想要什么资源」。
+页面只有 `index.html` / `styles.css` / `app.js` 三个文件，数据来自第二站那个
+Cloudflare Worker 的两个接口：`GET /api/demand`（本站真实需求）和 `GET /api/hot`
+（四平台热榜线索）。
 
 - 页面：`https://xrzka.github.io/qiu/`
-- 接口：`https://mo-stats.pages.dev/api/hot`（备份 `https://mo-stats.werneruszcb71.workers.dev/api/hot`）
-  - `?src=bili|douyin|ks|xhs` 只取一个平台，`?refresh=1` 强制重拉（60s 内仍给缓存），
-    `?debug=1` 附上每条上游的尝试结果
-  - 响应里 `data.<平台>.provider` 会写明这次用的是哪一路上游，页面卡片上显示为「来源」
-- 缓存：Worker 侧 D1 表 `hot_rank` 存快照，TTL 10 分钟；上游全挂时回退到旧快照并标 `stale`
-- 前端只读 Worker 的接口，**不直连 uapis / 60s / rebang**（额度、CORS、国内可达性都是理由）
+- 接口：`https://mo-stats.pages.dev/api/demand`、`/api/hot`
+  （备份 `https://mo-stats.werneruszcb71.workers.dev/...`）
 
-### 数据源为什么要做成链
+### 为什么不是「热搜聚合」
+
+最初这一页是纯热搜聚合，做完发现**没用**：四个平台的热搜榜里时政新闻占大多数，
+跟「要什么资源」基本无关；而且**四个平台都不公开「用户在搜什么」**（只有小红书那种
+要 `x-s` 签名的内部接口，Worker 里算不出来）。试过的路都不通：网盘搜索引擎
+（pansearch / qkpanso / 混合盘 …）全是 SPA 壳没有 SSR 热词，聚合站（vvhan / imsyy /
+efefee / rebang API）NXDOMAIN 或 502，B站 `api.bilibili.com` 从 Cloudflare 出口 412。
+
+所以真需求只能从**自己站的行为**里长出来，这也就是上面 `#demand` 那一块：
+
+| 卡片 | 数据来源 | 为什么值钱 |
+| --- | --- | --- |
+| 站内搜索热词 | D1 `search_terms`，由墨站搜索框埋点写 | 唯一能拿到「真实的人在搜什么字」 |
+| 搜了没结果（缺口） | 同一张表里 `zero_results > 0` | **等于「有人要，站里没有」**，补货回报最确定 |
+| 求资源帮找 | D1 `requests` 里 `kind='want'`，按票数 | 用户明确提出的需求 |
+| 点击最多的资源 | D1 `clicks` 月 / 年榜 + `items.json` 换名 | 已经能拿到的东西里什么最抢手 |
+
+热搜没有删掉，但降级成第二块「四平台热榜线索」，并且**默认只显示带资源属性的词**
+（`WANT_WORDS` 粗筛，开关可关）；命中资源向的条目才在默认视图里出现。
+
+### 站内搜索埋点（第一手数据）
+
+- 墨站 `app.js` 的 `logSearchTerm()`：输入停止 1.5s 后 `POST /api/search/log`
+  `{term, results}`；同会话同词只发一次，失败静默。**只发词和数字，不发身份。**
+- Worker `demand.js` 的 `handleSearchLog`：清洗词（长度 2–40、去控制字符、拒 URL）、
+  同一 IP + 同词 1 小时内在 KV 里去重（所以 `searches` 是「有多少人搜过」而不是
+  「被搜了几遍」），再 UPSERT 进 `search_terms`。
+- 表：`npx wrangler d1 execute mo-stats --remote --file=../mo_site/worker/schema_demand.sql`（可重复执行）
+- 点击榜**不列成人向条目**（`items.json` 里的 `adult: true`），跟墨站默认藏起来的规矩一致。
+
+### 数据源为什么要做成链（`/api/hot` 部分）
 
 四个平台都没有「无签名 + 允许跨域 + 国内可达」的统一接口，而且同一个上游从
 Cloudflare 出口打和从本机打结果可能完全不同。实测结论（2026-10）：
@@ -157,24 +183,29 @@ Cloudflare 出口打和从本机打结果可能完全不同。实测结论（202
   而且给的是「热门内容」+ 可能被截断的标题，兜底时会体现在卡片「来源」上。
 - 上游挂掉**不会**让接口返错：要么给缓存的旧快照（`stale: true`），要么给别的上游，
   实在什么都没有才 `ok: false`，页面显示"这个平台暂时取不到数据"。
+- 缓存：Worker 侧 D1 表 `hot_rank` 存快照，TTL 10 分钟；`?refresh=1` 强制重拉（60s 内仍给缓存）。
 
 ### 在这里改它时的注意点
 
-- **热门词判断在 `qiu/app.js` 的 `WANT_WORDS`**：命中即打「疑似求资源」标记，
-  也能用复选框只筛这些条目。这是粗筛，不是平台官方标签。
+- **资源向判断在 `qiu/app.js` 的 `WANT_WORDS`**：命中即打「资源向」标记，也是默认筛选的依据。
+  这是粗筛，不是平台官方标签。
 - **改了 `app.js` / `styles.css` 记得提 `qiu/index.html` 里的 `?v=` 版本号**（Pages CDN 缓存坑）。
-- 改了 Worker 侧（`hot.js` / `index.js` / `schema.sql`）要**两边都部署**：
+- 改了 Worker 侧（`hot.js` / `demand.js` / `index.js` / `schema*.sql`）要**两边都部署**：
   `cd ../mo_site/worker && npx wrangler deploy` 和 `cd pages && npx wrangler pages deploy`，
   只部署 Worker 的话 `mo-stats.pages.dev` 那条还是旧代码（踩过）。
-- 新表要单独建：`npx wrangler d1 execute mo-stats --remote --file=schema_hot.sql`（可重复执行）。
-- 验收：`node ../mo_site/worker/test_hot.mjs`（Worker 侧 16 项）+ 本仓库的 Playwright 脚本
+- 需求区每一块都单独 `try/catch`：表不存在 / 某块查不到只让那一块空着，不会整页 500。
+- 验收：Worker 侧两个测试 `node ../mo_site/worker/test_demand.mjs`（26 项）、
+  `node ../mo_site/worker/test_hot.mjs`；页面用 Playwright 脚本
   ```bash
-  # 本地（用真实响应样本顶掉 /api/hot，因为本地 Origin 不在 Worker 的 CORS 白名单里）
+  # 本地（用真实响应样本顶掉两个接口，因为本地 Origin 不在 Worker 的 CORS 白名单里）
   python -m http.server 8899
-  python D:/gz/_tools/verify_qiu.py http://127.0.0.1:8899/qiu/ --sample sample.json
-  # 线上
+  python D:/gz/_tools/verify_qiu.py http://127.0.0.1:8899/qiu/ \
+      --sample D:/gz/_tools/qiu_sample.json --demand D:/gz/_tools/qiu_demand_sample.json
+  # 线上（真打接口，搜索埋点可能为空，脚本会接受空状态）
   python D:/gz/_tools/verify_qiu.py https://xrzka.github.io/qiu/
   ```
 - `qiu/app.js` 和第一站共用同一个主题 localStorage key（`board-theme`），两边切换会互相记住。
+- 搜索埋点**要等墨站的 `app.js` 上线后才开始攒数据**；在那之前「站内搜索热词」和
+  「缺口」两张卡是空的（有说明文案），帮找榜和点击榜本来就有数据。
 
 

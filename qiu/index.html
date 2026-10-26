@@ -6,15 +6,15 @@
     <meta name="robots" content="index,follow,max-image-preview:large" />
     <meta
       name="description"
-      content="求资源热榜：实时聚合 B站、抖音、快手、小红书的搜索热词与热榜，看看大家在找什么资源。数据每 10 分钟刷新一次。"
+      content="求资源需求看板：本站真实搜索词、搜了没结果的缺口、用户在求的资源，外加 B站/抖音/快手/小红书的热榜线索。"
     />
-    <title>求资源热榜 · B站 / 抖音 / 快手 / 小红书</title>
-    <script src="../config.js?v=20261026a"></script>
-    <link rel="stylesheet" href="styles.css?v=20261026a" />
-    <script src="app.js?v=20261026a" defer></script>
+    <title>求资源需求看板 · 本站真实搜索 + 四平台线索</title>
+    <script src="../config.js?v=20261026c"></script>
+    <link rel="stylesheet" href="styles.css?v=20261026c" />
+    <script src="app.js?v=20261026c" defer></script>
   </head>
   <body>
-    <a class="skip-link" href="#boards">跳到热榜内容</a>
+    <a class="skip-link" href="#demand">跳到需求数据</a>
 
     <header class="site-header" id="top">
       <a class="brand" href="../" aria-label="返回中转站榜单">
@@ -37,75 +37,121 @@
     <main>
       <section class="intro" aria-labelledby="page-title">
         <div class="intro-copy">
-          <p class="eyebrow">WHAT PEOPLE WANT</p>
-          <h1 id="page-title">大家都在求什么资源</h1>
+          <p class="eyebrow">WHAT PEOPLE ACTUALLY WANT</p>
+          <h1 id="page-title">大家在求什么资源</h1>
           <p class="intro-text">
-            把 <strong>B站 / 抖音 / 快手 / 小红书</strong> 四个平台的实时搜索热词、热榜拉到一个页面上，
-            一眼就能看出最近什么内容在被大量搜索。想找站内有没有对应资源，
-            点条目上的「找资源」去墨小说漫画搜搜看。
+            四个平台都<strong>不公开</strong>「用户在搜什么资源」——它们只公开热搜，而热搜里
+            时政新闻占大多数，跟「要什么资源」关系不大。所以真需求只能从本站自己的行为里长出来：
+            访客<strong>搜了什么词</strong>、哪些词<strong>搜了却一条都没有</strong>、
+            用户明确<strong>在求什么</strong>、哪些资源<strong>被点得最多</strong>。
+            下面第一块就是这些；第二块的四平台热榜只当线索用。
           </p>
         </div>
         <dl class="summary-grid" aria-label="数据概览">
           <div class="summary-cell">
-            <dt>收录平台</dt>
-            <dd data-summary="platforms">4</dd>
+            <dt>站内搜索</dt>
+            <dd data-summary="searches">—</dd>
           </div>
           <div class="summary-cell">
-            <dt>当前条目</dt>
-            <dd data-summary="items">—</dd>
+            <dt>搜了没结果</dt>
+            <dd data-summary="gaps">—</dd>
           </div>
           <div class="summary-cell">
-            <dt>疑似求资源</dt>
+            <dt>求资源帮找</dt>
             <dd data-summary="wanted">—</dd>
           </div>
           <div class="summary-cell">
-            <dt>数据更新</dt>
-            <dd data-summary="fresh">—</dd>
+            <dt>线索条数</dt>
+            <dd data-summary="clues">—</dd>
           </div>
         </dl>
       </section>
 
-      <section class="controls" aria-label="筛选与刷新">
-        <div class="tabs" role="tablist" aria-label="平台切换" data-tabs></div>
-
-        <div class="control-row">
-          <label class="search-field">
-            <span class="visually-hidden">搜索关键词</span>
-            <input
-              type="search"
-              id="q"
-              placeholder="搜索热词（如：资源 / 全集 / 教程）"
-              autocomplete="off"
-            />
-          </label>
-
-          <label class="switch-field">
-            <input type="checkbox" data-want-only />
-            <span>只看「求资源」相关</span>
-          </label>
-
-          <button type="button" class="refresh-btn" data-refresh>
-            <span aria-hidden="true">↻</span>
-            <span>刷新</span>
-          </button>
-
-          <p class="status" data-status role="status" aria-live="polite"></p>
+      <section class="demand" id="demand" aria-labelledby="demand-title">
+        <div class="section-head">
+          <h2 id="demand-title">本站真实需求</h2>
+          <p class="section-note">
+            数据来自墨小说漫画站（<a href="https://xrzka.github.io/mo/">xrzka.github.io/mo</a>）自己的访客行为，
+            每 10 分钟刷新一次。搜索埋点只记「词 + 搜到几条」，不记 IP、不记访客身份，也没法还原是谁搜的。
+          </p>
+        </div>
+        <div class="demand-grid" data-demand aria-busy="true">
+          <p class="placeholder">正在读取本站需求数据…</p>
         </div>
       </section>
 
-      <section class="boards" id="boards" aria-label="热榜列表" data-boards aria-busy="true">
-        <p class="placeholder" data-placeholder>正在拉取四个平台的实时热榜…</p>
+      <section class="clues" id="clues" aria-labelledby="clues-title">
+        <div class="section-head">
+          <h2 id="clues-title">四平台热榜线索</h2>
+          <p class="section-note">
+            B站 / 抖音 / 快手 / 小红书的热搜热榜，<strong>只当线索</strong>：里面时政新闻占多数，
+            所以默认只显示带资源属性的词（下载 / 网盘 / 全集 / 教程 / 汉化…），想看全量把开关关掉。
+            每条都能一键复制去搜或跳墨站。
+          </p>
+        </div>
+
+        <div class="controls" aria-label="筛选与刷新">
+          <div class="tabs" role="tablist" aria-label="平台切换" data-tabs></div>
+
+          <div class="control-row">
+            <label class="search-field">
+              <span class="visually-hidden">搜索线索关键词</span>
+              <input
+                type="search"
+                id="q"
+                placeholder="在线索里搜（如：资源 / 全集 / 教程）"
+                autocomplete="off"
+              />
+            </label>
+
+            <label class="switch-field">
+              <input type="checkbox" data-want-only checked />
+              <span>只看资源向线索</span>
+            </label>
+
+            <button type="button" class="refresh-btn" data-refresh>
+              <span aria-hidden="true">↻</span>
+              <span>刷新</span>
+            </button>
+
+            <p class="status" data-status role="status" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <div class="boards" id="boards" aria-label="热榜列表" data-boards aria-busy="true">
+          <p class="placeholder" data-placeholder>正在拉取四个平台的实时热榜…</p>
+        </div>
       </section>
 
       <section class="about" id="about" aria-labelledby="about-title">
         <h2 id="about-title">数据口径</h2>
         <ul>
-          <li>数据来自各平台公开的热搜 / 热榜接口，经本站 Cloudflare Worker 归一化后缓存 <strong>10 分钟</strong>，所以「实时」指的是分钟级，不是秒级。</li>
-          <li>热度值沿用平台自己的口径（播放量 / 热度 / 指数），<strong>不同平台之间不可直接比较</strong>，所以不做跨平台总排名。</li>
-          <li>「疑似求资源」是按关键词命中的粗筛（资源、全集、下载、教程、破解、汉化…），只是提示，不是平台官方标签。</li>
-          <li>点条目默认跳到该平台的搜索页（视频类条目会直接跳到视频页）。链接都是平台原站，本站不存内容。</li>
-          <li>每个平台配了多个数据源按顺序回退（官方接口 → 60s API → rebang.today）。走到后面的兜底源时，条目可能是该平台的「热门内容」而不是「搜索热词」，标题也可能被上游截断；每张卡片右下角的「来源」会写出这次用的是哪一路。</li>
-          <li>某个平台暂时取不到时会显示上一次成功的快照并标注「数据偏旧」，不会整页空白。</li>
+          <li>
+            <strong>站内搜索热词</strong>：访客在墨站搜索框里搜的词，按「去过重的人次数」排。
+            同一个访客同一个词 1 小时内只算一次，所以它接近「有多少人搜过」，不是「被搜了几遍」。
+          </li>
+          <li>
+            <strong>搜了没结果</strong>：上面那些词里，本站结果数为 0 的 —— 这是最值钱的一栏，
+            它直接等于「有人要，但站里没有」。补给这类资源的回报最确定。
+          </li>
+          <li>
+            <strong>求资源帮找</strong>：用户在墨站「资源帮找」里明确提交的求助，按票数排。
+            状态 <em>待找</em> 是没人接，<em>已找到</em> 是已经补上了。
+          </li>
+          <li>
+            <strong>点击最多</strong>：墨站真实点开的资源（按月 / 按年），反映已经能拿到的东西里什么最抢手。
+          </li>
+          <li>
+            <strong>四平台热榜</strong>：来自各平台公开的热搜 / 热榜接口，经 Cloudflare Worker 归一化后缓存
+            10 分钟。热度值沿用平台自己的口径，<strong>不同平台之间不可直接比较</strong>，也不做跨平台排名。
+          </li>
+          <li>
+            线索里走到兜底数据源时，条目可能是该平台的「热门内容」而不是「搜索热词」，标题也可能被上游截断；
+            每张卡片右下角的「来源」会写出这次用的是哪一路。
+          </li>
+          <li>
+            某个平台暂时取不到时会显示上一次成功的快照并标注「数据偏旧」，不会整页空白。
+          </li>
         </ul>
       </section>
     </main>

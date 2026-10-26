@@ -1,7 +1,11 @@
 /**
- * 求资源热榜（/qiu/）前端。
+ * 求资源需求看板（/qiu/）前端。
  *
- * 只做三件事：拉 Worker 的 /api/hot、按平台/关键词筛、渲染成卡片列表。
+ * 两块数据：
+ *   1. `/api/demand` —— 本站真实需求（搜索词 / 缺口 / 帮找 / 点击），Worker 侧见 demand.js
+ *   2. `/api/hot`    —— 四平台热榜，只当线索（见 hot.js）
+ *
+ * 只做三件事：拉、按平台或关键词筛、渲染成卡片列表。
  * 所有文本走 textContent，外链 href 只白名单放行 http(s) —— 和第一站一个规矩。
  */
 (() => {
@@ -21,6 +25,8 @@
     return list.length ? list : FALLBACK_API;
   })();
 
+  const MO_HOME = "https://xrzka.github.io/mo/";
+
   /** 平台顺序与图标。数据里的 label 优先，这份只是兜底。 */
   const PLATFORMS = [
     { id: "bili", label: "B站", icon: "📺" },
@@ -29,12 +35,32 @@
     { id: "xhs", label: "小红书", icon: "📕" },
   ];
 
+  /** 分区 id → 中文名，点击榜里标一下这条属于哪个区。 */
+  const SECTION_LABEL = {
+    novel: "小说",
+    manga: "漫画",
+    anime: "动画",
+    game: "游戏",
+    music: "音乐",
+    tool: "工具",
+    ai: "AI",
+    forum: "论坛",
+    guide: "指南",
+    collection: "合集",
+    office2: "办公",
+    life: "生活",
+    study: "学习",
+    pickup: "推荐",
+  };
+
+  const WANT_STATUS = { open: "待找", found: "已找到", closed: "已关闭" };
+
   /** 自动刷新间隔，和 Worker 的 10 分钟缓存对齐。 */
   const AUTO_REFRESH_MS = 10 * 60 * 1000;
 
   /**
-   * 「求资源」粗筛词。命中任意一个就在条目上打标（也能用开关过滤）。
-   * 都是「有人在找某个东西」的味道，不含纯新闻词。
+   * 「资源向」粗筛词。命中任意一个就算一条资源线索（也能用开关过滤）。
+   * 热搜里大部分是时政新闻，这一层是把它压回「跟要资源有关」的那部分。
    */
   const WANT_WORDS = [
     "资源", "求", "找", "谁有", "哪里有", "入口", "在线看", "全集", "合集",
@@ -56,8 +82,9 @@
   const state = {
     active: "all",
     query: "",
-    wantOnly: false,
-    data: {},        // { src: {label, ok, stale, provider, fetched_at, items[]} }
+    wantOnly: true, // 默认只看资源向：热搜里新闻太多，不筛几乎没法用
+    data: {},       // { src: {label, ok, stale, provider, fetched_at, items[]} }
+    demand: null,   // /api/demand 的原始响应
     generatedAt: 0,
     loadedAt: 0,
     loading: false,
@@ -97,6 +124,11 @@
     return node;
   }
 
+  /** 墨站的搜索深链。 */
+  function moSearch(keyword) {
+    return `${MO_HOME}?q=${encodeURIComponent(keyword)}`;
+  }
+
   function visibleItems() {
     const srcs = state.active === "all" ? PLATFORMS.map((p) => p.id) : [state.active];
     const q = state.query.trim().toLowerCase();
@@ -114,7 +146,7 @@
     return out;
   }
 
-  /* ---------- 渲染 ---------- */
+  /* ---------- 渲染：热榜线索 ---------- */
 
   function renderTabs() {
     const host = $("[data-tabs]");
@@ -133,8 +165,9 @@
 
       if (entry.id !== "all") {
         const block = state.data[entry.id];
-        const count = block ? (block.items || []).length : 0;
-        btn.append(el("span", "tab-count", count ? String(count) : "—"));
+        const items = (block && block.items) || [];
+        const count = items.filter((i) => !state.wantOnly || i.want).length;
+        btn.append(el("span", "tab-count", items.length ? String(count) : "—"));
       }
       host.append(btn);
     }
@@ -160,13 +193,13 @@
     card.append(head);
 
     if (!block.ok) {
-      card.append(
-        el("p", "board-empty", "这个平台暂时取不到数据，稍后自动重试。")
-      );
+      card.append(el("p", "board-empty", "这个平台暂时取不到数据，稍后自动重试。"));
       return card;
     }
     if (!items.length) {
-      card.append(el("p", "board-empty", "当前筛选下没有条目。"));
+      card.append(
+        el("p", "board-empty", state.wantOnly ? "当前筛选下没有资源向线索。关掉开关看全量。" : "当前筛选下没有条目。")
+      );
       return card;
     }
 
@@ -188,13 +221,10 @@
 
       const foot = el("div", "item-foot");
       if (item.hot) foot.append(el("span", "item-hot", `🔥 ${item.hot}`));
-      if (item.want) {
-        const flag = el("span", "want-flag", "🔍 疑似求资源");
-        body.append(flag);
-      }
+      if (item.want && state.wantOnly) body.append(el("span", "want-flag", "资源向"));
 
       const search = el("a", "mini-btn", "找资源");
-      search.href = `https://xrzka.github.io/mo/?q=${encodeURIComponent(item.title)}`;
+      search.href = moSearch(item.title);
       search.target = "_blank";
       search.rel = "noopener";
       search.title = "去墨小说漫画搜这个关键词";
@@ -213,6 +243,200 @@
     return card;
   }
 
+  /* ---------- 渲染：本站真实需求 ---------- */
+
+  /** 一张需求卡的外壳：标题 + 角标 + 说明 + 内容容器。 */
+  function demandCard(title, badge, note) {
+    const card = el("article", "board demand-card");
+    const head = el("div", "board-head");
+    head.append(el("span", "board-title", title));
+    if (badge) head.append(el("span", "board-badge", badge));
+    card.append(head);
+    if (note) card.append(el("p", "board-note", note));
+    const body = el("div", "demand-body");
+    card.append(body);
+    return { card, body };
+  }
+
+  /** 词条行：词 + 搜索次数/结果数 + 复制/去墨站搜。两处（搜索热词、缺口）共用。 */
+  function termRow(entry, opts) {
+    const li = el("li", "term");
+    if (opts && opts.gap) li.dataset.gap = "1";
+
+    const main = el("div", "term-main");
+    main.append(el("span", "term-text", entry.term));
+    const parts = [`搜 ${entry.searches} 次`];
+    if (entry.zero_results) parts.push(`${entry.zero_results} 次没结果`);
+    parts.push(`上次结果 ${entry.last_results}`);
+    main.append(el("span", "term-meta", parts.join(" · ")));
+    li.append(main);
+
+    const actions = el("div", "term-actions");
+    const go = el("a", "mini-btn", "去墨站搜");
+    go.href = moSearch(entry.term);
+    go.target = "_blank";
+    go.rel = "noopener";
+    actions.append(go);
+    const copy = el("button", "mini-btn", "复制");
+    copy.type = "button";
+    copy.dataset.copy = entry.term;
+    actions.append(copy);
+    li.append(actions);
+    return li;
+  }
+
+  function wantedRow(item) {
+    const li = el("li", "want");
+    li.append(el("span", "want-votes", `${item.votes} 票`));
+
+    const body = el("div", "want-main");
+    body.append(el("span", "want-title", item.title));
+    if (item.note) body.append(el("span", "want-note", item.note));
+    if (item.reply) body.append(el("span", "want-reply", `站长回复：${item.reply}`));
+    li.append(body);
+
+    const badge = el("span", "board-badge", WANT_STATUS[item.status] || item.status);
+    badge.dataset.tone = item.status === "open" ? "warn" : "ok";
+    li.append(badge);
+    return li;
+  }
+
+  /** 点击榜：把「本月」「本年」两份 id 表并成一条列表，展示月/年两个数。 */
+  function clickRows(clicks) {
+    const names = clicks.names || {};
+    const merged = new Map();
+    for (const row of clicks.month || []) {
+      merged.set(row.id, { id: row.id, month: row.n, year: 0 });
+    }
+    for (const row of clicks.year || []) {
+      const cur = merged.get(row.id) || { id: row.id, month: 0, year: 0 };
+      cur.year = row.n;
+      merged.set(row.id, cur);
+    }
+    const rows = [...merged.values()].sort((a, b) => b.month - a.month || b.year - a.year);
+
+    const list = el("ol", "board-list click-list");
+    let shown = 0;
+    for (const row of rows) {
+      const info = names[row.id];
+      // 成人向条目不列：墨站默认藏起来，这里也不替它曝光
+      if (info && info.adult) continue;
+      const li = el("li", "click");
+      const name = info && info.name ? info.name : row.id;
+      li.append(el("span", "click-name", name));
+      if (info && info.section) {
+        li.append(el("span", "click-sec", SECTION_LABEL[info.section] || info.section));
+      }
+      li.append(el("span", "click-n", `月 ${row.month} · 年 ${row.year}`));
+      list.append(li);
+      if (++shown >= 15) break;
+    }
+    if (!shown) return null;
+    return list;
+  }
+
+  function renderDemand() {
+    const host = $("[data-demand]");
+    const demand = state.demand;
+    host.textContent = "";
+    host.setAttribute("aria-busy", "false");
+
+    if (!demand) {
+      host.append(
+        el("p", "placeholder", state.error || "本站需求数据暂时取不到，点「刷新」重试。")
+      );
+      return;
+    }
+
+    const search = demand.search || { terms: [], gaps: [], searches: 0, gaps_total: 0 };
+    const wanted = demand.wanted || { items: [], summary: { want: {} } };
+    const clicks = demand.clicks || { month: [], year: [], names: {} };
+
+    /* 1. 站内搜索热词 */
+    {
+      const { card, body } = demandCard(
+        "站内搜索热词",
+        search.terms_total ? `${search.terms_total} 个词` : "",
+        "墨站搜索框里访客搜过的词，按去重后的人次数排。"
+      );
+      if (!search.terms.length) {
+        body.append(
+          el(
+            "p",
+            "board-empty",
+            "还没有数据。从这次上线起，墨站的每次搜索都会记一笔（只记词和结果数，不记人），攒起来就会有。"
+          )
+        );
+      } else {
+        const list = el("ol", "board-list term-list");
+        for (const entry of search.terms) {
+          list.append(termRow(entry, { gap: entry.zero_results > 0 }));
+        }
+        body.append(list);
+      }
+      host.append(card);
+    }
+
+    /* 2. 搜了没结果 —— 最值钱的一栏 */
+    {
+      const { card, body } = demandCard(
+        "搜了没结果（缺口）",
+        search.gaps_total ? `${search.gaps_total} 个词` : "",
+        "有人搜、站里却一条都没有的词。补给这些最省事，回报也最确定。"
+      );
+      if (!search.gaps.length) {
+        body.append(
+          el(
+            "p",
+            "board-empty",
+            search.terms.length
+              ? "暂时没有缺口：搜过的词站里都有货。"
+              : "先要有搜索数据才能算出缺口。"
+          )
+        );
+      } else {
+        const list = el("ol", "board-list term-list");
+        for (const entry of search.gaps) list.append(termRow(entry, { gap: true }));
+        body.append(list);
+      }
+      host.append(card);
+    }
+
+    /* 3. 求资源帮找 */
+    {
+      const summary = (wanted.summary && wanted.summary.want) || {};
+      const open = Number(summary.open) || 0;
+      const { card, body } = demandCard(
+        "求资源帮找",
+        open ? `${open} 条待找` : "",
+        "用户在墨站「资源帮找」里明确提交的求助，按票数排。"
+      );
+      if (!wanted.items.length) {
+        body.append(el("p", "board-empty", "还没有人提交求资源。"));
+      } else {
+        const list = el("ol", "board-list want-list");
+        for (const item of wanted.items) list.append(wantedRow(item));
+        body.append(list);
+      }
+      host.append(card);
+    }
+
+    /* 4. 点击最多 */
+    {
+      const rows = clickRows(clicks);
+      const { card, body } = demandCard(
+        "点击最多的资源",
+        rows ? "" : "本月无点击",
+        "墨站上真实被点开的资源（月 / 年）。成人向条目按墨站惯例不在这里列出。"
+      );
+      if (rows) body.append(rows);
+      else body.append(el("p", "board-empty", "本月还没有点击记录。"));
+      host.append(card);
+    }
+  }
+
+  /* ---------- 渲染：总入口 ---------- */
+
   function render() {
     const boards = $("[data-boards]");
     const groups = visibleItems();
@@ -222,23 +446,34 @@
 
     if (state.error && !groups.some((g) => g.items.length)) {
       boards.append(el("p", "placeholder", state.error));
-      return;
-    }
-    if (!groups.length) {
+    } else if (!groups.length) {
       boards.append(el("p", "placeholder", "还没有数据，点「刷新」试试。"));
-      return;
+    } else {
+      for (const group of groups) {
+        boards.append(renderBoard(group.src, group.block, group.items));
+      }
     }
 
-    let total = 0;
-    let wanted = 0;
-    for (const group of groups) {
-      boards.append(renderBoard(group.src, group.block, group.items));
-      total += group.items.length;
-      wanted += group.items.filter((i) => i.want).length;
-    }
+    renderTabs();
+    renderDemand();
 
-    $('[data-summary="items"]').textContent = String(total);
-    $('[data-summary="wanted"]').textContent = String(wanted);
+    const search = (state.demand && state.demand.search) || {};
+    const wanted = (state.demand && state.demand.wanted) || { items: [], summary: { want: {} } };
+    let clues = 0;
+    for (const group of groups) clues += group.items.length;
+
+    $('[data-summary="searches"]').textContent = search.searches
+      ? String(search.searches)
+      : "—";
+    $('[data-summary="gaps"]').textContent = search.gaps_total
+      ? String(search.gaps_total)
+      : "0";
+    $('[data-summary="wanted"]').textContent = String(
+      (wanted.summary && wanted.summary.want && wanted.summary.want.open) ||
+        wanted.items.length ||
+        0
+    );
+    $('[data-summary="clues"]').textContent = String(clues);
   }
 
   function renderStatus(text, tone) {
@@ -248,15 +483,9 @@
     else delete node.dataset.tone;
   }
 
-  function renderFreshness() {
-    $('[data-summary="fresh"]').textContent = state.loadedAt
-      ? relativeTime(state.loadedAt)
-      : "—";
-  }
-
   /* ---------- 数据加载 ---------- */
 
-  function normalizePayload(json) {
+  function normalizeHot(json) {
     const data = {};
     const raw = (json && json.data) || {};
     for (const platform of PLATFORMS) {
@@ -296,12 +525,12 @@
     return data;
   }
 
-  async function requestHot(force) {
+  /** 依次试每个入口，第一个成功的就用（主入口偶发不可用时自动换）。 */
+  async function getJson(path) {
     let lastError = "";
     for (const base of API_BASES) {
-      const url = `${base}/api/hot${force ? "?refresh=1" : ""}`;
       try {
-        const response = await fetch(url, { cache: "no-store" });
+        const response = await fetch(`${base}${path}`, { cache: "no-store" });
         if (!response.ok) {
           lastError = `接口返回 ${response.status}`;
           continue;
@@ -319,72 +548,58 @@
     state.loading = true;
     const btn = $("[data-refresh]");
     btn.disabled = true;
-    renderStatus(force ? "正在强制刷新四个平台…" : "正在加载…");
+    renderStatus(force ? "正在强制刷新…" : "正在加载…");
 
-    try {
-      const json = await requestHot(force);
-      state.data = normalizePayload(json);
-      state.generatedAt = Number(json.generated_at) || Date.now();
-      state.loadedAt = Date.now();
+    // 需求数据不随 refresh 变（都是实时查库），热榜才需要强制刷新
+    const jobs = [getJson("/api/demand"), getJson(`/api/hot${force ? "?refresh=1" : ""}`)];
+    const [demand, hot] = await Promise.all(jobs.map((p) => p.catch((err) => err)));
+
+    if (demand instanceof Error) {
+      state.error = `本站需求数据拉取失败：${demand.message}`;
+    } else {
+      state.demand = demand;
       state.error = "";
-      const failed = PLATFORMS.filter((p) => !state.data[p.id].ok).map((p) => p.label);
-      const stale = PLATFORMS.filter((p) => state.data[p.id].stale).map((p) => p.label);
-      const notes = [];
-      if (stale.length) notes.push(`${stale.join("、")} 是旧快照`);
-      if (failed.length) notes.push(`${failed.join("、")} 暂时取不到`);
-      renderStatus(
-        `数据时间 ${relativeTime(state.generatedAt)}` +
-          (notes.length ? ` · ${notes.join("，")}` : " · 四平台均正常"),
-        notes.length ? "warn" : ""
-      );
-    } catch (err) {
-      state.error = `拉取失败：${err.message}。可能是网络或接口临时不可用，稍后自动重试。`;
-      renderStatus(state.error, "warn");
-    } finally {
-      state.loading = false;
-      btn.disabled = false;
-      renderTabs();
-      render();
-      renderFreshness();
     }
-  }
 
-  /* ---------- 主题 ---------- */
-
-  function initTheme() {
-    const KEY = "board-theme";
-    let theme = "";
-    try {
-      theme = localStorage.getItem(KEY) || "";
-    } catch (err) {
-      theme = "";
-    }
-    if (!theme) {
-      theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    }
-    applyTheme(theme);
-    const btn = $("[data-theme-toggle]");
-    btn.addEventListener("click", () => {
-      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-      applyTheme(next);
-      try {
-        localStorage.setItem(KEY, next);
-      } catch (err) {
-        /* 隐私模式忽略 */
+    if (hot instanceof Error) {
+      state.error = state.error || `热榜拉取失败：${hot.message}`;
+      if (!state.demand) {
+        renderStatus(state.error + "，稍后自动重试。", "warn");
+        btn.disabled = false;
+        state.loading = false;
+        render();
+        return;
       }
-    });
+    } else {
+      state.data = normalizeHot(hot);
+      state.generatedAt = Number(hot.generated_at) || Date.now();
+    }
+
+    state.loadedAt = Date.now();
+
+    const failed = hot instanceof Error
+      ? []
+      : PLATFORMS.filter((p) => !state.data[p.id].ok).map((p) => p.label);
+    const stale = hot instanceof Error
+      ? []
+      : PLATFORMS.filter((p) => state.data[p.id].stale).map((p) => p.label);
+    const notes = [];
+    if (stale.length) notes.push(`${stale.join("、")} 是旧快照`);
+    if (failed.length) notes.push(`${failed.join("、")} 暂时取不到`);
+    if (hot instanceof Error) notes.push("热榜取不到");
+    if (state.error) notes.push("需求数据部分取不到");
+    renderStatus(
+      `线索更新于 ${relativeTime(state.generatedAt)}` +
+        (notes.length ? ` · ${notes.join("，")}` : " · 四平台均正常"),
+      notes.length ? "warn" : ""
+    );
+
+    btn.disabled = false;
+    state.loading = false;
+    render();
   }
 
-  function applyTheme(theme) {
-    if (theme === "dark") document.documentElement.dataset.theme = "dark";
-    else delete document.documentElement.dataset.theme;
-    const btn = $("[data-theme-toggle]");
-    if (btn) btn.setAttribute("aria-pressed", String(theme === "dark"));
-  }
-
-  /* ---------- 事件 ---------- */
+  /* ---------- 复制 ---------- */
 
   /**
    * 复制到剪贴板。navigator.clipboard 要 https + 用户手势，沙箱/内嵌预览里
@@ -416,14 +631,63 @@
     }
   }
 
+  async function onCopy(btn) {
+    const text = btn.dataset.copy || "";
+    if (await copyText(text)) {
+      const old = btn.textContent;
+      btn.textContent = "已复制";
+      setTimeout(() => {
+        btn.textContent = old;
+      }, 1200);
+    } else {
+      renderStatus("复制失败，可以长按条目文字手动复制。", "warn");
+    }
+  }
+
+  /* ---------- 主题 ---------- */
+
+  function applyTheme(theme) {
+    if (theme === "dark") document.documentElement.dataset.theme = "dark";
+    else delete document.documentElement.dataset.theme;
+    const btn = $("[data-theme-toggle]");
+    if (btn) btn.setAttribute("aria-pressed", String(theme === "dark"));
+  }
+
+  function initTheme() {
+    const KEY = "board-theme"; // 和第一站共用，两个页面互相记住
+    let theme = "";
+    try {
+      theme = localStorage.getItem(KEY) || "";
+    } catch (err) {
+      theme = "";
+    }
+    if (!theme) {
+      theme =
+        window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+    }
+    applyTheme(theme);
+    const btn = $("[data-theme-toggle]");
+    btn.addEventListener("click", () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      applyTheme(next);
+      try {
+        localStorage.setItem(KEY, next);
+      } catch (err) {
+        /* 隐私模式忽略 */
+      }
+    });
+  }
+
+  /* ---------- 事件 ---------- */
+
   function bind() {
     $("[data-tabs]").addEventListener("click", (event) => {
       const btn = event.target.closest("[data-tab]");
       if (!btn) return;
       state.active = btn.dataset.tab;
-      renderTabs();
       render();
-      window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
     const input = $("#q");
@@ -443,30 +707,23 @@
 
     $("[data-refresh]").addEventListener("click", () => load(true));
 
-    $("[data-boards]").addEventListener("click", async (event) => {
+    // 复制按钮分布在两块里（线索条目 + 需求词条），统一委托到 document
+    document.addEventListener("click", (event) => {
       const btn = event.target.closest("[data-copy]");
-      if (!btn) return;
-      const text = btn.dataset.copy || "";
-      if (await copyText(text)) {
-        const old = btn.textContent;
-        btn.textContent = "已复制";
-        setTimeout(() => {
-          btn.textContent = old;
-        }, 1200);
-      } else {
-        renderStatus("复制失败，可以长按条目文字手动复制。", "warn");
-      }
+      if (btn) onCopy(btn);
     });
 
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && Date.now() - state.loadedAt > AUTO_REFRESH_MS) {
+      if (
+        document.visibilityState === "visible" &&
+        Date.now() - state.loadedAt > AUTO_REFRESH_MS
+      ) {
         load(false);
       }
     });
   }
 
   function tick() {
-    renderFreshness();
     if (Date.now() - state.loadedAt >= AUTO_REFRESH_MS) load(false);
   }
 
@@ -474,7 +731,6 @@
 
   initTheme();
   bind();
-  renderTabs();
   load(false);
-  setInterval(tick, 30 * 1000);
+  setInterval(tick, 60 * 1000);
 })();
