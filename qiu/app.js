@@ -197,8 +197,17 @@
       return card;
     }
     if (!items.length) {
+      // 默认开着「只看资源向」，某些平台某轮热榜可能一条资源向都没有。
+      // 这时候要说清「是筛没了，不是没数据」，并告诉他有几条可以放开看。
+      const total = (block.items || []).length;
       card.append(
-        el("p", "board-empty", state.wantOnly ? "当前筛选下没有资源向线索。关掉开关看全量。" : "当前筛选下没有条目。")
+        el(
+          "p",
+          "board-empty",
+          state.wantOnly && total
+            ? `这轮没有资源向线索（该平台共 ${total} 条，关掉「只看资源向线索」可看全量）。`
+            : "当前筛选下没有条目。"
+        )
       );
       return card;
     }
