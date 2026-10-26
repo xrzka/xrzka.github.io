@@ -14,6 +14,7 @@
 | `data/resources.json` | 静态数据快照，目前是 14 条基础数据 |
 | `.nojekyll` | 关掉 Jekyll，静态文件原样输出 |
 | `stars/` | **另一个独立页面**：`https://xrzka.github.io/stars/` GitHub 应用 Stars 榜，见下 |
+| `qiu/` | **另一个独立页面**：`https://xrzka.github.io/qiu/` 求资源热榜（B站/抖音/快手/小红书），见下 |
 | `.github/workflows/stars-board.yml` | 每天 UTC 02:17 采集 `stars/` 的 star 快照并提交回仓库 |
 
 ## 已实现
@@ -121,5 +122,59 @@ site_tags, last_tested_at, group_ratios, models
   ```
 - **头像**：`avatars.githubusercontent.com` 在国内/本机可能被拦，卡片已经做了 `onerror` 移除
   （不会留破图标）；e2e 里把这列 CORS 报错算噪声，不算页面 bug。
+
+## qiu/（求资源热榜）
+
+挂在同一个 Pages 域名下的**独立子页面**，目标是一屏看清 B站 / 抖音 / 快手 / 小红书
+四个平台上"大家在搜什么"，从而判断哪些资源有需求。页面本身只有
+`index.html` / `styles.css` / `app.js` 三个文件，数据全部来自第二站那个
+Cloudflare Worker 的 `GET /api/hot`（代码在 `../mo_site/worker/hot.js`）。
+
+- 页面：`https://xrzka.github.io/qiu/`
+- 接口：`https://mo-stats.pages.dev/api/hot`（备份 `https://mo-stats.werneruszcb71.workers.dev/api/hot`）
+  - `?src=bili|douyin|ks|xhs` 只取一个平台，`?refresh=1` 强制重拉（60s 内仍给缓存），
+    `?debug=1` 附上每条上游的尝试结果
+  - 响应里 `data.<平台>.provider` 会写明这次用的是哪一路上游，页面卡片上显示为「来源」
+- 缓存：Worker 侧 D1 表 `hot_rank` 存快照，TTL 10 分钟；上游全挂时回退到旧快照并标 `stale`
+- 前端只读 Worker 的接口，**不直连 uapis / 60s / rebang**（额度、CORS、国内可达性都是理由）
+
+### 数据源为什么要做成链
+
+四个平台都没有「无签名 + 允许跨域 + 国内可达」的统一接口，而且同一个上游从
+Cloudflare 出口打和从本机打结果可能完全不同。实测结论（2026-10）：
+
+| 平台 | 链上的顺序 | 实际常用的一路 |
+| --- | --- | --- |
+| B站 | `bilibili.hotword` → `api.bilibili.com/search/square` → uapis → rebang.today | `bilibili.hotword`（热搜词，带 heat_score） |
+| 抖音 | `iesdouyin.billboard` → 60s `/v2/douyin` → uapis → rebang.today | `iesdouyin.billboard` |
+| 快手 | 首页 `window.__APOLLO_STATE__` 里的 `visionHotRank` → uapis | 快手首页（偶尔超时，重试即好） |
+| 小红书 | 60s `/v2/rednote` → uapis → rebang.today | 60s 与 uapis 轮流（会 403/502） |
+
+- 小红书官方热搜接口要 `x-s` 签名，Worker 里算不出来，所以没走官方。
+- uapis.cn 从本机出口正常、从 Cloudflare 出口会 502，所以它虽然在链上但不是主力；
+  别因为它在本机好用就以为线上也走它 —— 用 `?debug=1` 看真实结果。
+- 链尾的 `rebang.today` 只能顶 B站 / 抖音 / 小红书（没有快手 tab），
+  而且给的是「热门内容」+ 可能被截断的标题，兜底时会体现在卡片「来源」上。
+- 上游挂掉**不会**让接口返错：要么给缓存的旧快照（`stale: true`），要么给别的上游，
+  实在什么都没有才 `ok: false`，页面显示"这个平台暂时取不到数据"。
+
+### 在这里改它时的注意点
+
+- **热门词判断在 `qiu/app.js` 的 `WANT_WORDS`**：命中即打「疑似求资源」标记，
+  也能用复选框只筛这些条目。这是粗筛，不是平台官方标签。
+- **改了 `app.js` / `styles.css` 记得提 `qiu/index.html` 里的 `?v=` 版本号**（Pages CDN 缓存坑）。
+- 改了 Worker 侧（`hot.js` / `index.js` / `schema.sql`）要**两边都部署**：
+  `cd ../mo_site/worker && npx wrangler deploy` 和 `cd pages && npx wrangler pages deploy`，
+  只部署 Worker 的话 `mo-stats.pages.dev` 那条还是旧代码（踩过）。
+- 新表要单独建：`npx wrangler d1 execute mo-stats --remote --file=schema_hot.sql`（可重复执行）。
+- 验收：`node ../mo_site/worker/test_hot.mjs`（Worker 侧 16 项）+ 本仓库的 Playwright 脚本
+  ```bash
+  # 本地（用真实响应样本顶掉 /api/hot，因为本地 Origin 不在 Worker 的 CORS 白名单里）
+  python -m http.server 8899
+  python D:/gz/_tools/verify_qiu.py http://127.0.0.1:8899/qiu/ --sample sample.json
+  # 线上
+  python D:/gz/_tools/verify_qiu.py https://xrzka.github.io/qiu/
+  ```
+- `qiu/app.js` 和第一站共用同一个主题 localStorage key（`board-theme`），两边切换会互相记住。
 
 

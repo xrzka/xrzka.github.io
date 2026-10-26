@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta
+      name="description"
+      content="求资源热榜：实时聚合 B站、抖音、快手、小红书的搜索热词与热榜，看看大家在找什么资源。数据每 10 分钟刷新一次。"
+    />
+    <title>求资源热榜 · B站 / 抖音 / 快手 / 小红书</title>
+    <script src="../config.js?v=20261026a"></script>
+    <link rel="stylesheet" href="styles.css?v=20261026a" />
+    <script src="app.js?v=20261026a" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#boards">跳到热榜内容</a>
+
+    <header class="site-header" id="top">
+      <a class="brand" href="../" aria-label="返回中转站榜单">
+        <span class="brand-mark" aria-hidden="true">←</span>
+        <span>中转站榜单</span>
+      </a>
+      <nav class="site-nav" aria-label="页面导航">
+        <a href="../">榜单</a>
+        <a href="./" aria-current="page">求资源热榜</a>
+        <a href="https://xrzka.github.io/mo/">墨小说漫画</a>
+      </nav>
+      <div class="header-actions">
+        <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">
+          <span aria-hidden="true">◐</span>
+          <span class="visually-hidden">切换深浅色主题</span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <p class="eyebrow">WHAT PEOPLE WANT</p>
+          <h1 id="page-title">大家都在求什么资源</h1>
+          <p class="intro-text">
+            把 <strong>B站 / 抖音 / 快手 / 小红书</strong> 四个平台的实时搜索热词、热榜拉到一个页面上，
+            一眼就能看出最近什么内容在被大量搜索。想找站内有没有对应资源，
+            点条目上的「找资源」去墨小说漫画搜搜看。
+          </p>
+        </div>
+        <dl class="summary-grid" aria-label="数据概览">
+          <div class="summary-cell">
+            <dt>收录平台</dt>
+            <dd data-summary="platforms">4</dd>
+          </div>
+          <div class="summary-cell">
+            <dt>当前条目</dt>
+            <dd data-summary="items">—</dd>
+          </div>
+          <div class="summary-cell">
+            <dt>疑似求资源</dt>
+            <dd data-summary="wanted">—</dd>
+          </div>
+          <div class="summary-cell">
+            <dt>数据更新</dt>
+            <dd data-summary="fresh">—</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="controls" aria-label="筛选与刷新">
+        <div class="tabs" role="tablist" aria-label="平台切换" data-tabs></div>
+
+        <div class="control-row">
+          <label class="search-field">
+            <span class="visually-hidden">搜索关键词</span>
+            <input
+              type="search"
+              id="q"
+              placeholder="搜索热词（如：资源 / 全集 / 教程）"
+              autocomplete="off"
+            />
+          </label>
+
+          <label class="switch-field">
+            <input type="checkbox" data-want-only />
+            <span>只看「求资源」相关</span>
+          </label>
+
+          <button type="button" class="refresh-btn" data-refresh>
+            <span aria-hidden="true">↻</span>
+            <span>刷新</span>
+          </button>
+
+          <p class="status" data-status role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section class="boards" id="boards" aria-label="热榜列表" data-boards aria-busy="true">
+        <p class="placeholder" data-placeholder>正在拉取四个平台的实时热榜…</p>
+      </section>
+
+      <section class="about" id="about" aria-labelledby="about-title">
+        <h2 id="about-title">数据口径</h2>
+        <ul>
+          <li>数据来自各平台公开的热搜 / 热榜接口，经本站 Cloudflare Worker 归一化后缓存 <strong>10 分钟</strong>，所以「实时」指的是分钟级，不是秒级。</li>
+          <li>热度值沿用平台自己的口径（播放量 / 热度 / 指数），<strong>不同平台之间不可直接比较</strong>，所以不做跨平台总排名。</li>
+          <li>「疑似求资源」是按关键词命中的粗筛（资源、全集、下载、教程、破解、汉化…），只是提示，不是平台官方标签。</li>
+          <li>点条目默认跳到该平台的搜索页（视频类条目会直接跳到视频页）。链接都是平台原站，本站不存内容。</li>
+          <li>每个平台配了多个数据源按顺序回退（官方接口 → 60s API → rebang.today）。走到后面的兜底源时，条目可能是该平台的「热门内容」而不是「搜索热词」，标题也可能被上游截断；每张卡片右下角的「来源」会写出这次用的是哪一路。</li>
+          <li>某个平台暂时取不到时会显示上一次成功的快照并标注「数据偏旧」，不会整页空白。</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="../">中转站榜单</a> ·
+        <a href="https://xrzka.github.io/mo/">墨小说漫画</a> ·
+        <a href="#top">回到顶部</a>
+      </p>
+      <p class="muted">热榜数据版权归各平台所有，本页仅做聚合展示。</p>
+    </footer>
+  </body>
+</html>
