@@ -267,15 +267,40 @@
     return { card, body };
   }
 
-  /** 词条行：词 + 搜索次数/结果数 + 复制/去墨站搜。两处（搜索热词、缺口）共用。 */
+  /** 趋势：名次对比算出来的，不是猜的 —— 跟「前 7 天」那份榜单里同一个词的名次比。 */
+  const TREND = {
+    up: { icon: "↑", label: "比前 7 天靠前" },
+    down: { icon: "↓", label: "比前 7 天靠后" },
+    stable: { icon: "·", label: "名次没变" },
+  };
+
+  /** 兼容旧响应：早期版本没有 visitors，只有 searches。 */
+  const visitorsOf = (entry) => Number(entry.visitors ?? entry.searches ?? 0) || 0;
+
+  /**
+   * 词条行：词 + 趋势箭头 + 近 7 天访客数 + 结果情况。两处（搜索热词、缺口）共用。
+   * 注意数字口径是「几位访客」而不是「搜了几次」—— 一个人搜 20 次也只是一个人。
+   */
   function termRow(entry, opts) {
     const li = el("li", "term");
     if (opts && opts.gap) li.dataset.gap = "1";
 
     const main = el("div", "term-main");
-    main.append(el("span", "term-text", entry.term));
-    const parts = [`搜 ${entry.searches} 次`];
-    if (entry.zero_results) parts.push(`${entry.zero_results} 次没结果`);
+    const line = el("div", "term-line");
+    const trend = TREND[entry.trend];
+    if (trend) {
+      const mark = el("span", "term-trend", trend.icon);
+      mark.dataset.trend = entry.trend;
+      mark.title = trend.label;
+      line.append(mark);
+    }
+    line.append(el("span", "term-text", entry.term));
+    main.append(line);
+
+    const visitors = visitorsOf(entry);
+    const zero = Number(entry.zero_visitors ?? entry.zero_results ?? 0) || 0;
+    const parts = [`近 7 天 ${visitors} 位访客`];
+    if (zero) parts.push(`${zero} 位搜了没结果`);
     parts.push(`上次结果 ${entry.last_results}`);
     main.append(el("span", "term-meta", parts.join(" · ")));
     li.append(main);
@@ -360,26 +385,28 @@
     const search = demand.search || { terms: [], gaps: [], searches: 0, gaps_total: 0 };
     const wanted = demand.wanted || { items: [], summary: { want: {} } };
     const clicks = demand.clicks || { month: [], year: [], names: {} };
+    const windowDays = Number(search.window_days) || 7;
 
     /* 1. 站内搜索热词 */
     {
+      const total = Number(search.visitors_total) || 0;
       const { card, body } = demandCard(
         "站内搜索热词",
-        search.terms_total ? `${search.terms_total} 个词` : "",
-        "墨站搜索框里访客搜过的词，按去重后的人次数排。"
+        total ? `近 ${windowDays} 天 ${total} 人次` : "",
+        `墨站搜索框里访客搜过的词。按访客数排 —— 同一个人搜 20 次也只算一个人；带 ↑ ↓ 的是跟前一个统计周期的名次比出来的。`
       );
       if (!search.terms.length) {
         body.append(
           el(
             "p",
             "board-empty",
-            "还没有数据。从这次上线起，墨站的每次搜索都会记一笔（只记词和结果数，不记人），攒起来就会有。"
+            `最近 ${windowDays} 天还没有搜索记录。从这次上线起，墨站的每次搜索都会记一笔（只记词和结果数，不记人），攒起来就会有。`
           )
         );
       } else {
         const list = el("ol", "board-list term-list");
         for (const entry of search.terms) {
-          list.append(termRow(entry, { gap: entry.zero_results > 0 }));
+          list.append(termRow(entry, { gap: (Number(entry.zero_visitors) || 0) > 0 }));
         }
         body.append(list);
       }
@@ -390,8 +417,8 @@
     {
       const { card, body } = demandCard(
         "搜了没结果（缺口）",
-        search.gaps_total ? `${search.gaps_total} 个词` : "",
-        "有人搜、站里却一条都没有的词。补给这些最省事，回报也最确定。"
+        search.gaps.length ? `近 ${windowDays} 天 ${search.gaps.length} 个词` : "",
+        "有人搜、站里却一条都没有的词。补给这些最省事，回报也最确定 —— 它直接等于「有人要，你没货」。"
       );
       if (!search.gaps.length) {
         body.append(
@@ -471,11 +498,13 @@
     let clues = 0;
     for (const group of groups) clues += group.items.length;
 
-    $('[data-summary="searches"]').textContent = search.searches
-      ? String(search.searches)
-      : "—";
-    $('[data-summary="gaps"]').textContent = search.gaps_total
-      ? String(search.gaps_total)
+    // 概览格跟着榜单走窗口口径：数字是「近 7 天有多少人次搜过」，
+    // 全量累计放在接口里（searches / terms_total），页面上不混着显示两套口径。
+    const recent = Number(search.visitors_total) || 0;
+    $('[data-summary="searches"]').textContent =
+      recent || search.searches ? String(recent || search.searches) : "—";
+    $('[data-summary="gaps"]').textContent = search.gaps.length
+      ? String(search.gaps.length)
       : "0";
     $('[data-summary="wanted"]').textContent = String(
       (wanted.summary && wanted.summary.want && wanted.summary.want.open) ||

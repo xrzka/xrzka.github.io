@@ -9,9 +9,9 @@
       content="求资源需求看板：本站真实搜索词、搜了没结果的缺口、用户在求的资源，外加 B站/抖音/快手/小红书的热榜线索。"
     />
     <title>求资源需求看板 · 本站真实搜索 + 四平台线索</title>
-    <script src="../config.js?v=20261026d"></script>
-    <link rel="stylesheet" href="styles.css?v=20261026d" />
-    <script src="app.js?v=20261026d" defer></script>
+    <script src="../config.js?v=20261029a"></script>
+    <link rel="stylesheet" href="styles.css?v=20261029a" />
+    <script src="app.js?v=20261029a" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#demand">跳到需求数据</a>
@@ -23,7 +23,7 @@
       </a>
       <nav class="site-nav" aria-label="页面导航">
         <a href="../">榜单</a>
-        <a href="./" aria-current="page">求资源热榜</a>
+        <a href="./" aria-current="page">求资源需求</a>
         <a href="https://xrzka.github.io/mo/">墨小说漫画</a>
       </nav>
       <div class="header-actions">
@@ -49,7 +49,7 @@
         </div>
         <dl class="summary-grid" aria-label="数据概览">
           <div class="summary-cell">
-            <dt>站内搜索</dt>
+            <dt>近 7 天搜索</dt>
             <dd data-summary="searches">—</dd>
           </div>
           <div class="summary-cell">
@@ -72,7 +72,8 @@
           <h2 id="demand-title">本站真实需求</h2>
           <p class="section-note">
             数据来自墨小说漫画站（<a href="https://xrzka.github.io/mo/">xrzka.github.io/mo</a>）自己的访客行为，
-            每 10 分钟刷新一次。搜索埋点只记「词 + 搜到几条」，不记 IP、不记访客身份，也没法还原是谁搜的。
+            每 10 分钟刷新一次。搜索榜统计<strong>最近 7 天</strong>、按<strong>访客数</strong>排（同一个人搜多少次都只算一个人），
+            带 ↑ / ↓ 的是跟前 7 天的名次比出来的。
           </p>
         </div>
         <div class="demand-grid" data-demand aria-busy="true">
@@ -127,8 +128,20 @@
         <h2 id="about-title">数据口径</h2>
         <ul>
           <li>
-            <strong>站内搜索热词</strong>：访客在墨站搜索框里搜的词，按「去过重的人次数」排。
-            同一个访客同一个词 1 小时内只算一次，所以它接近「有多少人搜过」，不是「被搜了几遍」。
+            <strong>站内搜索热词</strong>：访客在墨站搜索框里搜的词。一个词有几位访客搜过就算几个人，
+            <strong>同一个人搜 20 次也只是一个人</strong> —— 想靠反复搜把某个词顶上去没用。
+            统计窗口是<strong>最近 7 天</strong>，不是历史累计，所以它能反映「现在大家在找什么」。
+          </li>
+          <li>
+            <strong>怎么排序（热度值）</strong>：<em>热度 = 近 7 天访客数 × 2 + max(0, 近 7 天访客数 − 前 7 天访客数)</em>。
+            前半是<strong>量级</strong>、权重 2；后半是<strong>动量</strong>、权重 1 ——
+            量级为主，保证长期有人要的东西不会被一次突发挤掉；动量只把「突然被集中搜的」往前推一点。
+            全部由搜索数据算出来，<strong>不含随机数</strong>：数据没变，刷新多少次名次都一样。
+          </li>
+          <li>
+            <strong>↑ / ↓ 是怎么来的</strong>：用同一套算法再算一份「前 7 天」的完整榜单，
+            比较同一个词在两份榜单里的<strong>名次</strong>（不是比较热度值大小）。
+            名次前移显示 ↑，后移显示 ↓，持平显示 ·，前 7 天还没上榜的词算新进榜、也显示 ↑。
           </li>
           <li>
             <strong>搜了没结果</strong>：上面那些词里，本站结果数为 0 的 —— 这是最值钱的一栏，
@@ -140,6 +153,12 @@
           </li>
           <li>
             <strong>点击最多</strong>：墨站真实点开的资源（按月 / 按年），反映已经能拿到的东西里什么最抢手。
+          </li>
+          <li>
+            <strong>只记词、不记人</strong>：搜索埋点只上传「词 + 搜到几条 + 一个随机访客号」。访客号是
+            浏览器本地生成的随机串，不含任何个人信息，服务端存的是它的哈希值；连 IP 都不落库
+            （只在浏览器没给访客号时，用「IP + 浏览器 + 当天日期」的哈希兜底去重，跨天无法关联）。
+            搜索明细只保留 90 天。
           </li>
           <li>
             <strong>四平台热榜</strong>：来自各平台公开的热搜 / 热榜接口，经 Cloudflare Worker 归一化后缓存

@@ -146,21 +146,44 @@ efefee / rebang API）NXDOMAIN 或 502，B站 `api.bilibili.com` 从 Cloudflare 
 
 | 卡片 | 数据来源 | 为什么值钱 |
 | --- | --- | --- |
-| 站内搜索热词 | D1 `search_terms`，由墨站搜索框埋点写 | 唯一能拿到「真实的人在搜什么字」 |
-| 搜了没结果（缺口） | 同一张表里 `zero_results > 0` | **等于「有人要，站里没有」**，补货回报最确定 |
+| 站内搜索热词 | D1 `search_events` 明细，由墨站搜索框埋点写 | 唯一能拿到「真实的人在搜什么字」 |
+| 搜了没结果（缺口） | 同一张表里 `results = 0` 的行 | **等于「有人要，站里没有」**，补货回报最确定 |
 | 求资源帮找 | D1 `requests` 里 `kind='want'`，按票数 | 用户明确提出的需求 |
 | 点击最多的资源 | D1 `clicks` 月 / 年榜 + `items.json` 换名 | 已经能拿到的东西里什么最抢手 |
 
 热搜没有删掉，但降级成第二块「四平台热榜线索」，并且**默认只显示带资源属性的词**
 （`WANT_WORDS` 粗筛，开关可关）；命中资源向的条目才在默认视图里出现。
 
+### 搜索榜的算法（照 aicu.cc 的「用户名热搜」做的）
+
+2026-10 把 [aicu.cc](https://www.aicu.cc/)（哔哩哔哩查成分）的前端 bundle 拆了，
+逆出它的热搜实现：`GET online.aicu.cc/api/community/trending?limit=N` 取榜、
+`POST .../search-events {uid, visitor_id}` 上报搜索，站点自己也在弹窗里写着完整口径。
+它的设计比「按历史累计次数排」合理得多，这几条直接抄了：
+
+| aicu 的做法 | 本页的对应 |
+| --- | --- |
+| 最近 2 小时量级 + 相对前 6 小时的动量，量级为主、动量只做加成 | 近 **7** 天量级 + 相对前 7 天的动量（站点日活个位数，2 小时窗口永远空） |
+| 同一浏览器 / 同一网络对同一个 UID 10 分钟内最多算一次 | 一位访客对一个词只占一行，**同一个人搜 20 次也只是一个人** |
+| 至少 5 位不同访客搜过才上榜 | 门槛降到 **1**（日活个位数，5 位会永远空榜），但把「几位访客」摊在页面上 |
+| trend 用同一套算法再算一份 2 小时前的榜，比名次 | 再算一份「前 7 天」的榜比名次：前移 ↑、后移 ↓、持平 ·、没上榜过算新进 |
+| 「热搜榜算法说明」弹窗逐条写明口径 | 页面「数据口径」里同样写清公式，别让数字看起来像编的 |
+
+热度值 = `近 7 天访客数 × 2 + max(0, 近 7 天访客数 − 前 7 天访客数)`，纯确定性计算没有随机数。
+有一处**故意不一样**：aicu 只统计「查询成功」的 UID（失败的查询多半是输错），
+本页反过来 —— 「搜了但站里 0 条」恰恰是最值钱的信号，所以失败的搜索单独排一个缺口榜。
+
 ### 站内搜索埋点（第一手数据）
 
 - 墨站 `app.js` 的 `logSearchTerm()`：输入停止 1.5s 后 `POST /api/search/log`
-  `{term, results}`；同会话同词只发一次，失败静默。**只发词和数字，不发身份。**
-- Worker `demand.js` 的 `handleSearchLog`：清洗词（长度 2–40、去控制字符、拒 URL）、
-  同一 IP + 同词 1 小时内在 KV 里去重（所以 `searches` 是「有多少人搜过」而不是
-  「被搜了几遍」），再 UPSERT 进 `search_terms`。
+  `{term, results, visitor_id}`；同会话同词只发一次，失败静默。
+  `visitor_id` 是浏览器本地随机生成的串（`localStorage["mo-visitor-id"]`），
+  **不含任何个人信息**，只用来让 Worker 把「同一个人搜了 20 次」算成一个人。
+- Worker `demand.js` 的 `handleSearchLog`：清洗词（长度 2–40、去控制字符 / 零宽字符、拒 URL），
+  然后一条 UPSERT 写 `search_events`，主键 `(term, fp)` —— 老访客搜同一个词只更新时间和结果、
+  不加次数，1 小时内重复上报直接不动。**一个词有几行就等于几位访客想要它。**
+- 隐私：`fp` 是 sha256 摘要，**不存 IP、不存访客 id 原值**；前端没带 `visitor_id` 时兜底摘要
+  `IP+UA+当天日期`（跨天无法关联）。明细只留 90 天，Worker 的 cron 每天清一次。
 - 表：`npx wrangler d1 execute mo-stats --remote --file=../mo_site/worker/schema_demand.sql`（可重复执行）
 - 点击榜**不列成人向条目**（`items.json` 里的 `adult: true`），跟墨站默认藏起来的规矩一致。
 
@@ -194,15 +217,18 @@ Cloudflare 出口打和从本机打结果可能完全不同。实测结论（202
   `cd ../mo_site/worker && npx wrangler deploy` 和 `cd pages && npx wrangler pages deploy`，
   只部署 Worker 的话 `mo-stats.pages.dev` 那条还是旧代码（踩过）。
 - 需求区每一块都单独 `try/catch`：表不存在 / 某块查不到只让那一块空着，不会整页 500。
-- 验收：Worker 侧两个测试 `node ../mo_site/worker/test_demand.mjs`（26 项）、
+- 验收：Worker 侧两个测试 `node ../mo_site/worker/test_demand.mjs`（42 项）、
   `node ../mo_site/worker/test_hot.mjs`；页面用 Playwright 脚本
   ```bash
   # 本地（用真实响应样本顶掉两个接口，因为本地 Origin 不在 Worker 的 CORS 白名单里）
+  # 样本由 node D:/gz/_tools/make_demand_sample.mjs 生成（跑真 demand.js，形状不会和实现脱节）
   python -m http.server 8899
   python D:/gz/_tools/verify_qiu.py http://127.0.0.1:8899/qiu/ \
       --sample D:/gz/_tools/qiu_sample.json --demand D:/gz/_tools/qiu_demand_sample.json
   # 线上（真打接口，搜索埋点可能为空，脚本会接受空状态）
   python D:/gz/_tools/verify_qiu.py https://xrzka.github.io/qiu/
+  # 搜索埋点端到端（真浏览器打字 → 接口 200 → 榜里出现；跑完自动清测试词）
+  python D:/gz/_tools/verify_search_log.py
   ```
 - `qiu/app.js` 和第一站共用同一个主题 localStorage key（`board-theme`），两边切换会互相记住。
 - 搜索埋点**要等墨站的 `app.js` 上线后才开始攒数据**；在那之前「站内搜索热词」和

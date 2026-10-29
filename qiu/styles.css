@@ -445,6 +445,21 @@ main { padding: 0 clamp(16px, 4vw, 40px) 48px; }
 .term:last-child { border-bottom: 0; }
 .term[data-gap="1"] .term-text { color: var(--hot); }
 .term-main { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; }
+/* 趋势箭头和词在同一行，箭头不占太多宽度，别把长词挤换行 */
+.term-line { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.term-trend {
+  flex: 0 0 auto;
+  width: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  cursor: help;
+}
+/* 上升 / 下降 / 持平三态：只靠颜色区分不够，形状本身就不同（↑ ↓ ·），色盲也分得出 */
+.term-trend[data-trend="up"] { color: var(--hot); }
+.term-trend[data-trend="down"] { color: var(--accent); }
+.term-trend[data-trend="stable"] { color: var(--text-muted); opacity: 0.55; }
 .term-text {
   font-weight: 600;
   word-break: break-all;
