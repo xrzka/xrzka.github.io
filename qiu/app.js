@@ -254,17 +254,71 @@
 
   /* ---------- 渲染：本站真实需求 ---------- */
 
-  /** 一张需求卡的外壳：标题 + 角标 + 说明 + 内容容器。 */
-  function demandCard(title, badge, note) {
+  /**
+   * 一张需求卡的外壳：标题 + 角标 + 说明 + 内容容器。
+   * action 是放在卡片头右侧的按钮（比如缺口卡的「复制待补清单」），可省略。
+   */
+  function demandCard(title, badge, note, action) {
     const card = el("article", "board demand-card");
     const head = el("div", "board-head");
     head.append(el("span", "board-title", title));
     if (badge) head.append(el("span", "board-badge", badge));
+    if (action) {
+      action.classList.add("board-action");
+      head.append(action);
+    }
     card.append(head);
     if (note) card.append(el("p", "board-note", note));
     const body = el("div", "demand-body");
     card.append(body);
     return { card, body };
+  }
+
+  /** 相对时间：流水里「3 分钟前」比绝对时间好读，超过 30 天就只给日期。 */
+  function relTime(at) {
+    const ms = Number(at) || 0;
+    if (!ms) return "";
+    const diff = Date.now() - ms;
+    if (diff < 60 * 1000) return "刚刚";
+    if (diff < 60 * 60 * 1000) return `${Math.floor(diff / 60000)} 分钟前`;
+    if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / 3600000)} 小时前`;
+    if (diff < 30 * 24 * 60 * 60 * 1000) return `${Math.floor(diff / 86400000)} 天前`;
+    const d = new Date(ms);
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(
+      d.getUTCDate()
+    ).padStart(2, "0")}`;
+  }
+
+  /**
+   * 搜索流水的一行：词 + 搜到几条 + 什么时候搜的。
+   * 这是给站长当补货工作单用的 —— 热词榜回答「哪类词热」，
+   * 这份流水回答「最近到底有人搜了什么、搜到没有」。
+   */
+  function recentRow(entry) {
+    const li = el("li", "term recent");
+    if (!entry.results) li.dataset.gap = "1";
+
+    const main = el("div", "term-main");
+    const line = el("div", "term-line");
+    line.append(el("span", "term-text", entry.term));
+    main.append(line);
+    main.append(
+      el("span", "term-meta", `${entry.results ? `搜到 ${entry.results} 条` : "没搜到"} · ${relTime(entry.at)}`)
+    );
+    li.append(main);
+
+    const actions = el("div", "term-actions");
+    const go = el("a", "mini-btn", "去墨站搜");
+    go.href = moSearch(entry.term);
+    go.target = "_blank";
+    go.rel = "noopener";
+    actions.append(go);
+    const copy = el("button", "mini-btn", "复制");
+    copy.type = "button";
+    copy.dataset.copy = entry.term;
+    actions.append(copy);
+    li.append(actions);
+    return li;
   }
 
   /** 趋势：名次对比算出来的，不是猜的 —— 跟「前 7 天」那份榜单里同一个词的名次比。 */
@@ -382,43 +436,23 @@
       return;
     }
 
-    const search = demand.search || { terms: [], gaps: [], searches: 0, gaps_total: 0 };
+    const search =
+      demand.search || { terms: [], gaps: [], recent: [], searches: 0, gaps_total: 0 };
     const wanted = demand.wanted || { items: [], summary: { want: {} } };
     const clicks = demand.clicks || { month: [], year: [], names: {} };
     const windowDays = Number(search.window_days) || 7;
+    const recent = search.recent || [];
 
-    /* 1. 站内搜索热词 */
+    /* 1. 搜了没结果（缺口）—— 站长的补货清单，放第一位 */
     {
-      const total = Number(search.visitors_total) || 0;
-      const { card, body } = demandCard(
-        "站内搜索热词",
-        total ? `近 ${windowDays} 天 ${total} 人次` : "",
-        `墨站搜索框里访客搜过的词。按访客数排 —— 同一个人搜 20 次也只算一个人；带 ↑ ↓ 的是跟前一个统计周期的名次比出来的。`
-      );
-      if (!search.terms.length) {
-        body.append(
-          el(
-            "p",
-            "board-empty",
-            `最近 ${windowDays} 天还没有搜索记录。从这次上线起，墨站的每次搜索都会记一笔（只记词和结果数，不记人），攒起来就会有。`
-          )
-        );
-      } else {
-        const list = el("ol", "board-list term-list");
-        for (const entry of search.terms) {
-          list.append(termRow(entry, { gap: (Number(entry.zero_visitors) || 0) > 0 }));
-        }
-        body.append(list);
-      }
-      host.append(card);
-    }
-
-    /* 2. 搜了没结果 —— 最值钱的一栏 */
-    {
+      const copyAll = el("button", "mini-btn", "复制待补清单");
+      copyAll.type = "button";
+      copyAll.dataset.copy = search.gaps.map((g) => g.term).join("\n");
       const { card, body } = demandCard(
         "搜了没结果（缺口）",
-        search.gaps.length ? `近 ${windowDays} 天 ${search.gaps.length} 个词` : "",
-        "有人搜、站里却一条都没有的词。补给这些最省事，回报也最确定 —— 它直接等于「有人要，你没货」。"
+        search.gaps.length ? `${search.gaps.length} 个词` : "",
+        "有人搜、站里却一条都没有的词。补给这些最省事，回报也最确定 —— 它直接等于「有人要，你没货」。右上角一键复制整份清单。",
+        search.gaps.length ? copyAll : null
       );
       if (!search.gaps.length) {
         body.append(
@@ -438,20 +472,46 @@
       host.append(card);
     }
 
-    /* 3. 求资源帮找 */
+    /* 2. 站内搜索热词 */
     {
-      const summary = (wanted.summary && wanted.summary.want) || {};
-      const open = Number(summary.open) || 0;
+      const total = Number(search.visitors_total) || 0;
       const { card, body } = demandCard(
-        "求资源帮找",
-        open ? `${open} 条待找` : "",
-        "用户在墨站「资源帮找」里明确提交的求助，按票数排。"
+        "站内搜索热词",
+        total ? `近 ${windowDays} 天 ${total} 人次` : "",
+        `墨站搜索框里访客搜过的词。按访客数排 —— 同一个人搜 20 次也只算一个人；带 ↑ ↓ 的是跟前一个统计周期的名次比出来的。`
       );
-      if (!wanted.items.length) {
-        body.append(el("p", "board-empty", "还没有人提交求资源。"));
+      if (!search.terms.length) {
+        body.append(
+          el(
+            "p",
+            "board-empty",
+            `最近 ${windowDays} 天还没有搜索记录。墨站的每次搜索都会记一笔（只记词和结果数，不记人），攒起来就会有。`
+          )
+        );
       } else {
-        const list = el("ol", "board-list want-list");
-        for (const item of wanted.items) list.append(wantedRow(item));
+        const list = el("ol", "board-list term-list");
+        for (const entry of search.terms) {
+          list.append(termRow(entry, { gap: (Number(entry.zero_visitors) || 0) > 0 }));
+        }
+        body.append(list);
+      }
+      host.append(card);
+    }
+
+    /* 3. 最新搜索记录（流水）—— 照着它一条条补资源 */
+    {
+      const { card, body } = demandCard(
+        "最新搜索记录",
+        recent.length ? `最近 ${recent.length} 条` : "",
+        "墨站搜索的原始流水（已按访客去重），谁搜了什么、搜到没有、什么时候搜的，按时间倒序。热词榜看趋势，这份看最新的单条需求。"
+      );
+      if (!recent.length) {
+        body.append(
+          el("p", "board-empty", "还没有搜索记录。墨站上每有人搜一次就会多一条，包括你自己搜的 —— 可以去搜个站里没有的词试试。")
+        );
+      } else {
+        const list = el("ol", "board-list term-list recent-list");
+        for (const entry of recent) list.append(recentRow(entry));
         body.append(list);
       }
       host.append(card);
@@ -467,6 +527,26 @@
       );
       if (rows) body.append(rows);
       else body.append(el("p", "board-empty", "本月还没有点击记录。"));
+      host.append(card);
+    }
+
+    /* 5. 求资源帮找 —— 放最后：用户主动反馈的，多数人搜不到就直接走了、不留言，
+        所以这份只是补充，主力是上面的搜索记录。 */
+    {
+      const summary = (wanted.summary && wanted.summary.want) || {};
+      const open = Number(summary.open) || 0;
+      const { card, body } = demandCard(
+        "求资源帮找",
+        open ? `${open} 条待找` : "",
+        "用户主动提交的求助，按票数排。多数人搜不到不留言，所以这只是补充 —— 主力看上面的搜索记录；墨站搜索 0 条的空状态里也加了一键求助入口（词自动填好）。"
+      );
+      if (!wanted.items.length) {
+        body.append(el("p", "board-empty", "还没有人提交求资源。"));
+      } else {
+        const list = el("ol", "board-list want-list");
+        for (const item of wanted.items) list.append(wantedRow(item));
+        body.append(list);
+      }
       host.append(card);
     }
   }

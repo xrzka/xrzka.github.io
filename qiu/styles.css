@@ -384,6 +384,9 @@ main { padding: 0 clamp(16px, 4vw, 40px) 48px; }
   text-decoration: none;
 }
 .mini-btn:hover { color: var(--accent); border-color: var(--accent); }
+/* 卡片头右侧的操作按钮（缺口卡的「复制待补清单」）：推到最右，行高对齐角标 */
+.board-action { margin-left: auto; }
+.board-action + .board-meta { margin-left: 0; }
 
 .board-empty, .placeholder {
   margin: 0;
@@ -466,6 +469,9 @@ main { padding: 0 clamp(16px, 4vw, 40px) 48px; }
 }
 .term-meta { font-size: 12px; color: var(--text-muted); }
 .term-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+/* 搜索流水：没搜到的词跟缺口榜一个色，一眼分出「这条要补」 */
+.term.recent[data-gap="1"] .term-text { color: var(--hot); }
+.term.recent .term-text { font-weight: 600; }
 
 /* 帮找榜 */
 .want-list { padding-top: 8px; }
